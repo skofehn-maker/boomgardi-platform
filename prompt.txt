@@ -1,0 +1,8 @@
+Read AGENTS.md. We need to finish the current phase.Do not run any pip commands. Just write the code.
+
+1. Rewrite `app/api/v1/auth.py` completely to fix the `create_user` function (check email, hash password, save to DB).
+2. Create `app/templates/login.html` with a simple green-themed login form.
+3. Create `app/templates/profile.html` with a welcome message.
+4. Update `app/main.py` to render these templates for GET `/login` and `/profile`.
+
+Write all these files now.
