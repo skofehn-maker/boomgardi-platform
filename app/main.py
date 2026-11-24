@@ -50,6 +50,16 @@ async def host_page(request: Request):
     return templates.TemplateResponse(request=request, name="host_dashboard.html")
 
 
+@app.get("/host/bookings", include_in_schema=False)
+async def host_bookings_page(request: Request):
+    return templates.TemplateResponse(request=request, name="host_bookings.html")
+
+
+@app.get("/profile/bookings", include_in_schema=False)
+async def profile_bookings_page(request: Request):
+    return templates.TemplateResponse(request=request, name="profile_bookings.html")
+
+
 @app.get("/listings/{listing_id}", include_in_schema=False)
 async def listing_detail_page(request: Request, listing_id: str):
     return templates.TemplateResponse(request=request, name="listing_detail.html")

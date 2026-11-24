@@ -860,11 +860,22 @@
         }
     }
 
-    function signOut() {
+    function clearSession() {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem('token_type');
+    }
+
+    // No usable token: the login page is the helpful destination.
+    function signOut() {
+        clearSession();
         window.location.replace('/login');
+    }
+
+    // Explicit logout: back to the public homepage.
+    function logout() {
+        clearSession();
+        window.location.replace('/');
     }
 
     const token = localStorage.getItem(STORAGE_KEY);
@@ -906,7 +917,7 @@
     document.getElementById('sidebar-open').addEventListener('click', openSidebar);
     document.getElementById('sidebar-close').addEventListener('click', closeSidebar);
     overlay.addEventListener('click', closeSidebar);
-    document.getElementById('logout-button').addEventListener('click', signOut);
+    document.getElementById('logout-button').addEventListener('click', logout);
 
     // --- Helpers ---------------------------------------------------------
     const escapeHtml = function (value) {

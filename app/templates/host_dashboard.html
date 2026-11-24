@@ -415,6 +415,7 @@
         <nav class="nav" aria-label="ناوبری">
             <a href="/profile" class="nav-link">داشبورد</a>
             <a href="/host" class="nav-link current">میزبانی</a>
+            <a href="/host/bookings" class="nav-link">رزروهای من</a>
             <a id="admin-link" href="/admin" class="nav-link hidden">پنل مدیریت</a>
         </nav>
 
@@ -699,7 +700,7 @@
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem('token_type');
         localStorage.removeItem(USER_KEY);
-        window.location.replace('/login');
+        window.location.replace('/');
     }
 
     function renderListing(listing) {

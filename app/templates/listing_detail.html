@@ -92,6 +92,23 @@
 
         .solid-link:hover { background: #4e342e; border-color: #3e2723; }
 
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 9px 14px;
+            border: 1px solid #d7ccc8;
+            border-radius: 11px;
+            background: #fdfbf7;
+            color: #3e2723;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+        }
+
+        .nav-btn:hover { border-color: #6f4e37; background: #f5f0e6; color: #4e342e; }
+
         /* ================= Layout ================= */
         .content { padding: 22px 18px 42px; }
 
@@ -366,6 +383,7 @@
         <nav class="header-nav">
             <a class="ghost-link" href="/">صفحه اصلی</a>
             <a id="account-link" class="solid-link" href="/login">ورود / ثبت‌نام</a>
+            <button id="logout-button" class="nav-btn hidden" type="button">خروج</button>
         </nav>
     </div>
 </header>
@@ -505,7 +523,15 @@
     if (token) {
         document.getElementById('account-link').setAttribute('href', '/profile');
         document.getElementById('account-link').textContent = 'حساب من';
+        document.getElementById('logout-button').classList.remove('hidden');
     }
+
+    document.getElementById('logout-button').addEventListener('click', function () {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        localStorage.removeItem('token_type');
+        window.location.replace('/');
+    });
 
     const listingId = window.location.pathname.split('/').filter(Boolean).pop();
 

@@ -309,6 +309,7 @@
 
         <nav class="nav" aria-label="ناوبری">
             <a href="/profile" class="nav-link current">داشبورد</a>
+            <a href="/profile/bookings" class="nav-link">رزروهای من</a>
             <a id="admin-link" href="/admin" class="nav-link hidden">پنل مدیریت</a>
         </nav>
 
@@ -469,11 +470,22 @@
         }
     }
 
-    function signOut() {
+    function clearSession() {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem('token_type');
+    }
+
+    // No usable token: the login page is the helpful destination.
+    function signOut() {
+        clearSession();
         window.location.replace('/login');
+    }
+
+    // Explicit logout: back to the public homepage.
+    function logout() {
+        clearSession();
+        window.location.replace('/');
     }
 
     const token = localStorage.getItem(STORAGE_KEY);
@@ -540,8 +552,8 @@
         quick.classList.add('flex');
     }
 
-    document.getElementById('logout-button').addEventListener('click', signOut);
-    document.getElementById('logout-button-secondary').addEventListener('click', signOut);
+    document.getElementById('logout-button').addEventListener('click', logout);
+    document.getElementById('logout-button-secondary').addEventListener('click', logout);
 })();
 </script>
 </body>

@@ -98,6 +98,23 @@
 
         .solid-link:hover { background: #4e342e; border-color: #3e2723; box-shadow: 0 10px 22px rgba(78, 52, 46, 0.28); }
 
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 9px 14px;
+            border: 1px solid #d7ccc8;
+            border-radius: 11px;
+            background: #fdfbf7;
+            color: #3e2723;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+        }
+
+        .nav-btn:hover { border-color: #6f4e37; background: #f5f0e6; color: #4e342e; }
+
         /* ================= Hero ================= */
         .hero {
             padding: 40px 0 30px;
@@ -313,7 +330,9 @@
 
         <nav class="header-nav">
             <a class="ghost-link" href="/host">ثبت اقامتگاه</a>
-            <a class="solid-link" href="/login">ورود / ثبت‌نام</a>
+            <a id="nav-login" class="solid-link" href="/login">ورود / ثبت‌نام</a>
+            <a id="nav-profile" class="solid-link hidden" href="/profile">پروفایل من</a>
+            <button id="nav-logout" class="nav-btn hidden" type="button">خروج</button>
         </nav>
     </div>
 </header>
@@ -386,6 +405,37 @@
 <script>
 (function () {
     'use strict';
+
+    // --- Navbar: reflect the stored session ------------------------------
+    const AUTH_KEY = 'access_token';
+    const navLogin = document.getElementById('nav-login');
+    const navProfile = document.getElementById('nav-profile');
+    const navLogout = document.getElementById('nav-logout');
+
+    function ownsSession(token) {
+        if (!token) { return false; }
+        try {
+            const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+            const padded = base64.padEnd(base64.length + (4 - (base64.length % 4)) % 4, '=');
+            const payload = JSON.parse(decodeURIComponent(escape(atob(padded))));
+            return Boolean(payload.exp && payload.exp * 1000 > Date.now());
+        } catch (error) {
+            return false;
+        }
+    }
+
+    if (ownsSession(localStorage.getItem(AUTH_KEY))) {
+        navLogin.classList.add('hidden');
+        navProfile.classList.remove('hidden');
+        navLogout.classList.remove('hidden');
+    }
+
+    navLogout.addEventListener('click', function () {
+        localStorage.removeItem(AUTH_KEY);
+        localStorage.removeItem('current_user');
+        localStorage.removeItem('token_type');
+        window.location.replace('/');
+    });
 
     const grid = document.getElementById('listings-grid');
     const caption = document.getElementById('listings-caption');
