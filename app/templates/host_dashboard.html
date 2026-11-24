@@ -220,6 +220,93 @@
 
         .note { font-size: 12px; color: #6f4e37; line-height: 1.9; }
 
+        /* ================= My listings ================= */
+        .page-head-spaced { margin-top: 28px; }
+
+        .list-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .mini-btn {
+            padding: 8px 13px;
+            border: 1px solid #d7ccc8;
+            border-radius: 10px;
+            background: #fdfbf7;
+            color: #3e2723;
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+        }
+
+        .mini-btn:hover { border-color: #6f4e37; background: #f5f0e6; color: #4e342e; }
+        .mini-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+
+        .listing-list { display: block; }
+
+        .listing-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(215, 204, 200, 0.65);
+        }
+
+        .listing-row:last-child { border-bottom: 0; }
+        .listing-main { min-width: 0; }
+        .listing-title { font-size: 14px; font-weight: 700; color: #3e2723; }
+
+        .listing-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #6f4e37;
+        }
+
+        .listing-meta svg { width: 13px; height: 13px; stroke: #6f4e37; fill: none; }
+        .listing-actions { display: flex; align-items: center; gap: 9px; }
+
+        .publish-btn {
+            padding: 7px 14px;
+            border: 1px solid #4e342e;
+            border-radius: 10px;
+            background: #6f4e37;
+            color: #f5f0e6;
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 14px rgba(111, 78, 55, 0.2);
+            transition: background 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .publish-btn:hover { background: #4e342e; box-shadow: 0 9px 18px rgba(78, 52, 46, 0.26); }
+        .publish-btn:disabled { opacity: 0.7; cursor: not-allowed; box-shadow: none; }
+
+        .list-empty { padding: 26px 20px; text-align: center; font-size: 13px; color: #6f4e37; }
+
+        .list-skeleton {
+            height: 13px;
+            margin: 0 20px 14px;
+            border-radius: 6px;
+            background: #d7ccc8;
+            animation: pulse 1.4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.45; }
+        }
+
         /* ================= Result ================= */
         .result { margin-top: 18px; overflow: hidden; }
 
@@ -313,6 +400,36 @@
 <main class="content">
 
     <div class="page-head">
+        <h1 class="page-title">اقامتگاه‌های من</h1>
+        <p class="page-subtitle">
+            اقامتگاه‌هایی که به‌عنوان میزبان ثبت کرده‌اید. اقامتگاه پیش‌نویس تا زمانی که منتشر نشود در
+            صفحه اصلی نمایش داده نمی‌شود.
+        </p>
+    </div>
+
+    <section class="card">
+        <div class="card-head list-head">
+            <div>
+                <h2 class="card-title">فهرست اقامتگاه‌ها</h2>
+                <p id="my-listings-caption" class="card-sub">در حال دریافت اطلاعات…</p>
+            </div>
+            <button id="my-listings-refresh" type="button" class="mini-btn">بروزرسانی</button>
+        </div>
+
+        <div id="my-listings-error" class="alert hidden" role="alert" style="margin: 16px 20px 0;">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3h.008M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+            </svg>
+            <span id="my-listings-error-text"></span>
+        </div>
+
+        <div id="my-listings-body" class="listing-list" aria-live="polite">
+            <div class="list-skeleton" style="width: 62%;"></div>
+            <div class="list-skeleton" style="width: 40%;"></div>
+        </div>
+    </section>
+
+    <div class="page-head page-head-spaced">
         <h1 class="page-title">اقامتگاه جدید</h1>
         <p class="page-subtitle">
             اطلاعات اقامتگاه خود را وارد کنید. اقامتگاه ابتدا به‌صورت پیش‌نویس ثبت می‌شود و تا زمان انتشار
@@ -569,6 +686,7 @@
 
             renderListing(payload || {});
             form.reset();
+            loadMyListings();
         } catch (error) {
             showError('ارتباط با سرور برقرار نشد. اتصال خود را بررسی کنید.');
         } finally {
@@ -576,9 +694,156 @@
         }
     });
 
+    // --- My listings (publish flow) ---------------------------------------
+    const myListingsBody = document.getElementById('my-listings-body');
+    const myListingsCaption = document.getElementById('my-listings-caption');
+    const myListingsError = document.getElementById('my-listings-error');
+    const myListingsErrorText = document.getElementById('my-listings-error-text');
+    const myListingsRefresh = document.getElementById('my-listings-refresh');
+
+    function escapeHtml(value) {
+        return String(value === null || value === undefined ? '' : value).replace(/[&<>"']/g, function (char) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+        });
+    }
+
+    function showListingsError(message) {
+        myListingsErrorText.textContent = message;
+        myListingsError.classList.remove('hidden');
+    }
+
+    function hideListingsError() {
+        myListingsError.classList.add('hidden');
+        myListingsErrorText.textContent = '';
+    }
+
+    function statusChip(status) {
+        const label = STATUS_LABELS[status] || status || '—';
+        return '<span class="chip"><span class="dot"></span>' + escapeHtml(label) + '</span>';
+    }
+
+    function listingRow(listing) {
+        const canPublish = listing.status === 'draft';
+
+        return '<div class="listing-row">'
+            + '<div class="listing-main">'
+            + '<p class="listing-title">' + escapeHtml(listing.title) + '</p>'
+            + '<p class="listing-meta">'
+            + '<svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">'
+            + '<path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>'
+            + '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/>'
+            + '</svg>'
+            + escapeHtml(listing.city) + ' · ' + escapeHtml(formatDate(listing.created_at))
+            + '</p>'
+            + '</div>'
+            + '<div class="listing-actions">'
+            + statusChip(listing.status)
+            + (canPublish
+                ? '<button class="publish-btn" type="button" data-id="' + escapeHtml(listing.id) + '">انتشار</button>'
+                : '')
+            + '</div>'
+            + '</div>';
+    }
+
+    function renderMyListings(listings) {
+        myListingsCaption.textContent =
+            listings.length.toLocaleString('fa-IR') + ' اقامتگاه ثبت کرده‌اید';
+
+        if (listings.length === 0) {
+            myListingsBody.innerHTML =
+                '<p class="list-empty">هنوز اقامتگاهی ثبت نکرده‌اید. با فرم پایین صفحه شروع کنید.</p>';
+            return;
+        }
+
+        myListingsBody.innerHTML = listings.map(listingRow).join('');
+    }
+
+    async function loadMyListings() {
+        myListingsRefresh.disabled = true;
+        hideListingsError();
+
+        try {
+            const response = await fetch('/api/v1/listings/mine', {
+                headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' }
+            });
+
+            if (response.status === 401) {
+                logout();
+                return;
+            }
+            if (!response.ok) {
+                throw new Error('Unexpected status ' + response.status);
+            }
+
+            renderMyListings(await response.json());
+        } catch (error) {
+            myListingsBody.innerHTML = '';
+            myListingsCaption.textContent = 'خطا در دریافت اطلاعات';
+            showListingsError('ارتباط با سرور برقرار نشد. اتصال خود را بررسی کنید.');
+        } finally {
+            myListingsRefresh.disabled = false;
+        }
+    }
+
+    async function publishListing(button) {
+        const listingId = button.getAttribute('data-id');
+        hideListingsError();
+        button.disabled = true;
+        button.textContent = 'در حال انتشار…';
+
+        try {
+            const response = await fetch(
+                '/api/v1/listings/' + encodeURIComponent(listingId) + '/publish',
+                {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Idempotency-Key': makeIdempotencyKey()
+                    }
+                }
+            );
+
+            if (response.status === 401) {
+                logout();
+                return;
+            }
+
+            if (!response.ok) {
+                const payload = await response.json().catch(function () { return null; });
+                showListingsError(readError(payload) || 'انتشار اقامتگاه انجام نشد. دوباره تلاش کنید.');
+                await loadMyListings();
+                return;
+            }
+
+            const published = await response.json();
+
+            // Re-read the host's listings so the row now shows "منتشرشده".
+            await loadMyListings();
+
+            // Keep the "ثبت شد" summary in step when it describes this listing.
+            if (document.getElementById('result-id').textContent === published.id) {
+                document.getElementById('result-status').textContent =
+                    STATUS_LABELS[published.status] || published.status || '—';
+            }
+        } catch (error) {
+            showListingsError('ارتباط با سرور برقرار نشد. اتصال خود را بررسی کنید.');
+            await loadMyListings();
+        }
+    }
+
+    myListingsBody.addEventListener('click', function (event) {
+        const button = event.target.closest('.publish-btn');
+        if (button) {
+            publishListing(button);
+        }
+    });
+
+    myListingsRefresh.addEventListener('click', loadMyListings);
+
     document.getElementById('logout-button').addEventListener('click', logout);
 
     showCurrentUser();
+    loadMyListings();
 })();
 </script>
 </body>

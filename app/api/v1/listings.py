@@ -3,11 +3,13 @@
 ``POST /api/v1/listings`` lets an authenticated user create a listing as its host.
 ``GET /api/v1/listings`` is public and only ever returns published listings.
 ``GET /api/v1/listings/admin`` is the admin-only view of every listing.
+``GET /api/v1/listings/mine`` lists the caller's own listings, drafts included.
+``PATCH /api/v1/listings/{id}/publish`` lets the owning host publish a draft.
 """
 
 import uuid
 
-from fastapi import APIRouter, Depends, Header, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -80,6 +82,67 @@ async def create_listing(
         if duplicate is None:
             raise
         return await _load_listing(db, duplicate.id)
+
+    return await _load_listing(db, listing.id)
+
+
+@router.get(
+    "/mine",
+    response_model=list[ListingResponse],
+    summary="List the current user's own listings (drafts included)",
+)
+async def list_my_listings(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[Listing]:
+    """Every listing hosted by the caller; never another host's rows."""
+    result = await db.scalars(
+        select(Listing)
+        .where(Listing.host_id == current_user.id)
+        .order_by(Listing.created_at.desc())
+    )
+    return list(result.all())
+
+
+@router.patch(
+    "/{listing_id}/publish",
+    response_model=ListingResponse,
+    summary="Publish one of the current user's draft listings",
+)
+async def publish_listing(
+    listing_id: uuid.UUID,
+    idempotency_key: str = Header(
+        ...,
+        alias="Idempotency-Key",
+        min_length=8,
+        max_length=128,
+        description="Unique key per publish attempt; replaying it is a no-op.",
+    ),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Listing:
+    """Move ``draft`` -> ``published`` for the owning host (ADR 0004)."""
+    listing = await db.get(Listing, listing_id)
+    if listing is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="اقامتگاه یافت نشد"
+        )
+    if listing.host_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="فقط میزبان این اقامتگاه می‌تواند آن را منتشر کند",
+        )
+    if listing.status == "archived":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="اقامتگاه بایگانی‌شده قابل انتشار نیست",
+        )
+
+    # Publishing an already published listing writes nothing: the transition is
+    # the same target status, which is what makes a replayed key safe.
+    if listing.status != "published":
+        listing.status = "published"
+        await db.commit()
 
     return await _load_listing(db, listing.id)
 
