@@ -338,6 +338,33 @@
         .room-form-card { margin-top: 18px; }
         .bookings-card { margin-top: 18px; }
 
+        .table-wrap { overflow-x: auto; }
+
+        .inbox-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+
+        .inbox-table th {
+            padding: 10px 14px;
+            text-align: right;
+            font-weight: 600;
+            color: #6f4e37;
+            background: #fdfbf7;
+            border-bottom: 1px solid #d7ccc8;
+            white-space: nowrap;
+        }
+
+        .inbox-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(215, 204, 200, 0.65);
+            color: #3e2723;
+            vertical-align: middle;
+        }
+
+        .inbox-table tr:last-child td { border-bottom: 0; }
+        .inbox-guest { display: block; font-weight: 600; }
+        .inbox-guest-mail { display: block; margin-top: 2px; font-size: 11px; color: #6f4e37; }
+        .inbox-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+        .inbox-empty { padding: 22px 14px; text-align: center; font-size: 13px; color: #6f4e37; }
+
         /* ================= Result ================= */
         .result { margin-top: 18px; overflow: hidden; }
 
@@ -464,7 +491,7 @@
     <section class="card bookings-card">
         <div class="card-head list-head">
             <div>
-                <h2 class="card-title">رزروهای اخیر</h2>
+                <h2 class="card-title">رزروهای دریافتی</h2>
                 <p id="host-recent-caption" class="card-sub">در حال دریافت رزروها…</p>
             </div>
             <a href="/host/bookings" class="mini-btn">همه رزروها</a>
@@ -477,9 +504,22 @@
             <span id="host-recent-error-text"></span>
         </div>
 
-        <div id="host-recent-bookings" class="listing-list" aria-live="polite">
-            <div class="list-skeleton" style="width: 58%;"></div>
-            <div class="list-skeleton" style="width: 34%;"></div>
+        <div class="table-wrap">
+            <table class="inbox-table">
+                <thead>
+                    <tr>
+                        <th scope="col">مهمان</th>
+                        <th scope="col">اتاق</th>
+                        <th scope="col">ورود</th>
+                        <th scope="col">خروج</th>
+                        <th scope="col">وضعیت</th>
+                        <th scope="col">عملیات</th>
+                    </tr>
+                </thead>
+                <tbody id="host-recent-bookings" aria-live="polite">
+                    <tr><td colspan="6" class="inbox-empty">در حال دریافت رزروها…</td></tr>
+                </tbody>
+            </table>
         </div>
     </section>
 
@@ -1097,20 +1137,35 @@
         }).format(date);
     }
 
+    // One explicit endpoint per host action.
+    const BOOKING_ACTIONS = {
+        confirm: function (id) { return '/api/v1/bookings/' + encodeURIComponent(id) + '/confirm'; },
+        cancel: function (id) { return '/api/v1/bookings/' + encodeURIComponent(id) + '/cancel'; }
+    };
+
     function bookingRow(booking) {
-        return '<div class="listing-row">'
-            + '<div class="listing-main">'
-            + '<p class="listing-title">' + escapeHtml(booking.guest_name || booking.guest_email || 'مهمان') + '</p>'
-            + '<p class="listing-meta">'
-            + escapeHtml(booking.room_name || 'اتاق')
-            + ' · ' + escapeHtml(booking.listing_title || 'اقامتگاه')
-            + ' · ' + escapeHtml(bookingDay(booking.check_in)) + ' تا ' + escapeHtml(bookingDay(booking.check_out))
-            + '</p>'
-            + '</div>'
-            + '<span class="chip"><span class="dot"></span>'
+        const actions = booking.status === 'pending'
+            ? '<div class="inbox-actions">'
+                + '<button class="mini-btn" type="button" data-booking-action="confirm" data-id="'
+                + escapeHtml(booking.id) + '">تأیید</button>'
+                + '<button class="mini-btn" type="button" data-booking-action="cancel" data-id="'
+                + escapeHtml(booking.id) + '">لغو</button>'
+                + '</div>'
+            : '<span class="room-empty">—</span>';
+
+        return '<tr>'
+            + '<td>'
+            + '<span class="inbox-guest">' + escapeHtml(booking.guest_name || 'مهمان') + '</span>'
+            + '<span class="inbox-guest-mail" dir="ltr">' + escapeHtml(booking.guest_email || '') + '</span>'
+            + '</td>'
+            + '<td>' + escapeHtml(booking.room_name || '—') + '</td>'
+            + '<td>' + escapeHtml(bookingDay(booking.check_in)) + '</td>'
+            + '<td>' + escapeHtml(bookingDay(booking.check_out)) + '</td>'
+            + '<td><span class="chip"><span class="dot"></span>'
             + escapeHtml(BOOKING_STATUS_LABELS[booking.status] || booking.status || '—')
-            + '</span>'
-            + '</div>';
+            + '</span></td>'
+            + '<td>' + actions + '</td>'
+            + '</tr>';
     }
 
     async function loadRecentBookings() {
@@ -1138,13 +1193,14 @@
 
             if (list.length === 0) {
                 recentCaption.textContent = 'هنوز رزروی برای اقامتگاه‌های شما ثبت نشده است.';
-                recentBody.innerHTML = '<p class="list-empty">رزرو جدیدی در انتظار نیست.</p>';
+                recentBody.innerHTML =
+                    '<tr><td colspan="6" class="inbox-empty">رزرو جدیدی در انتظار نیست.</td></tr>';
                 return;
             }
 
             recentCaption.textContent = list.length.toLocaleString('fa-IR') + ' رزرو · '
                 + pending.toLocaleString('fa-IR') + ' در انتظار تأیید';
-            recentBody.innerHTML = list.slice(0, 3).map(bookingRow).join('');
+            recentBody.innerHTML = list.slice(0, 5).map(bookingRow).join('');
         } catch (error) {
             recentBody.innerHTML = '';
             recentCaption.textContent = 'خطا در دریافت رزروها';
@@ -1152,6 +1208,60 @@
             recentError.classList.remove('hidden');
         }
     }
+
+    async function runBookingAction(action, bookingId, button) {
+        const endpoint = BOOKING_ACTIONS[action];
+        if (!endpoint) {
+            return;
+        }
+
+        button.disabled = true;
+        recentError.classList.add('hidden');
+        recentErrorText.textContent = '';
+
+        try {
+            const response = await fetch(endpoint(bookingId), {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Idempotency-Key': makeIdempotencyKey()
+                }
+            });
+
+            if (response.status === 401) {
+                logout();
+                return;
+            }
+
+            if (!response.ok) {
+                const payload = await response.json().catch(function () { return null; });
+                recentErrorText.textContent =
+                    readError(payload) || 'تغییر وضعیت رزرو انجام نشد. دوباره تلاش کنید.';
+                recentError.classList.remove('hidden');
+                return;
+            }
+
+            // Re-read the inbox so the row shows its new status.
+            await loadRecentBookings();
+        } catch (error) {
+            recentErrorText.textContent = 'ارتباط با سرور برقرار نشد. اتصال خود را بررسی کنید.';
+            recentError.classList.remove('hidden');
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    recentBody.addEventListener('click', function (event) {
+        const actionButton = event.target.closest('[data-booking-action]');
+        if (!actionButton) {
+            return;
+        }
+        runBookingAction(
+            actionButton.getAttribute('data-booking-action'),
+            actionButton.getAttribute('data-id'),
+            actionButton
+        );
+    });
 
     document.getElementById('logout-button').addEventListener('click', logout);
 

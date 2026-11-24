@@ -124,7 +124,7 @@ def test_host_dashboard_shows_incoming_bookings():
 
             assert 'id="host-recent-bookings"' in body
             assert "/api/v1/bookings/host" in body
-            assert "رزروهای اخیر" in body
+            assert "رزروهای دریافتی" in body
             assert 'href="/host/bookings"' in body
             # The listings console is still there.
             assert 'id="my-listings-body"' in body
