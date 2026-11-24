@@ -649,9 +649,85 @@
         main.appendChild(title);
         main.appendChild(sub);
         main.appendChild(dates);
+
+        if (status === 'pending') {
+            const actions = document.createElement('div');
+            actions.style.display = 'flex';
+            actions.style.gap = '8px';
+            actions.style.marginTop = '8px';
+
+            const payBtn = document.createElement('button');
+            payBtn.type = 'button';
+            payBtn.textContent = 'پرداخت';
+            payBtn.setAttribute('data-action', 'pay');
+            payBtn.setAttribute('data-id', booking.id);
+            payBtn.style.padding = '6px 12px';
+            payBtn.style.border = '1px solid #4e342e';
+            payBtn.style.borderRadius = '9px';
+            payBtn.style.background = '#6f4e37';
+            payBtn.style.color = '#f5f0e6';
+            payBtn.style.cursor = 'pointer';
+            payBtn.style.fontFamily = 'inherit';
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.type = 'button';
+            cancelBtn.textContent = 'لغو';
+            cancelBtn.setAttribute('data-action', 'cancel');
+            cancelBtn.setAttribute('data-id', booking.id);
+            cancelBtn.style.padding = '6px 12px';
+            cancelBtn.style.border = '1px solid #d7ccc8';
+            cancelBtn.style.borderRadius = '9px';
+            cancelBtn.style.background = '#fdfbf7';
+            cancelBtn.style.color = '#4e342e';
+            cancelBtn.style.cursor = 'pointer';
+            cancelBtn.style.fontFamily = 'inherit';
+
+            actions.appendChild(payBtn);
+            actions.appendChild(cancelBtn);
+            main.appendChild(actions);
+        }
+
         row.appendChild(main);
         row.appendChild(badge);
         return row;
+    }
+
+    function makeIdempotencyKey() {
+        if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+            return window.crypto.randomUUID();
+        }
+        return 'profile-action-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+    }
+
+    async function runBookingAction(btn) {
+        const action = btn.getAttribute('data-action');
+        const id = btn.getAttribute('data-id');
+        btn.disabled = true;
+
+        const endpoint = action === 'pay'
+            ? '/api/v1/bookings/' + encodeURIComponent(id) + '/pay'
+            : '/api/v1/bookings/' + encodeURIComponent(id) + '/cancel';
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'PATCH',
+                headers: {
+                    Authorization: 'Bearer ' + token,
+                    'Idempotency-Key': makeIdempotencyKey()
+                }
+            });
+            if (response.status === 401) {
+                signOut();
+                return;
+            }
+            if (!response.ok) {
+                // ignore; refresh anyway
+            }
+        } catch (error) {
+            // ignore; refresh anyway
+        }
+
+        loadBookings();
     }
 
     async function loadBookings() {
@@ -693,6 +769,14 @@
             body.appendChild(failed);
         }
     }
+
+    const bookingsBody = document.getElementById('profile-bookings-body');
+    bookingsBody.addEventListener('click', function (event) {
+        const btn = event.target.closest('button[data-action]');
+        if (btn) {
+            runBookingAction(btn);
+        }
+    });
 
     loadBookings();
 })();

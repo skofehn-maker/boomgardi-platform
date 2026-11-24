@@ -361,6 +361,17 @@
         </div>
     </div>
 
+    <div class="search-bar" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
+        <input id="city-search" type="text" placeholder="جستجوی شهر..." style="flex:1;min-width:160px;padding:10px 12px;border:1px solid #d7ccc8;border-radius:12px;background:#fdfbf7;color:#3e2723;font-family:inherit;font-size:13px;">
+        <select id="max-price" style="padding:10px 12px;border:1px solid #d7ccc8;border-radius:12px;background:#fdfbf7;color:#3e2723;font-family:inherit;font-size:13px;">
+            <option value="">همه قیمت‌ها</option>
+            <option value="800000">تا ۸۰۰٬۰۰۰</option>
+            <option value="1000000">تا ۱٬۰۰۰٬۰۰۰</option>
+            <option value="1500000">تا ۱٬۵۰۰٬۰۰۰</option>
+        </select>
+        <button id="search-btn" type="button" style="padding:10px 16px;border:1px solid #4e342e;border-radius:12px;background:#6f4e37;color:#f5f0e6;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">جستجو</button>
+    </div>
+
     <div id="listings-grid" class="cards" aria-live="polite">
         <div class="skeleton-card">
             <div class="skeleton-media"></div>
@@ -477,9 +488,13 @@
         caption.textContent = listings.length.toLocaleString('fa-IR') + ' اقامتگاه برای رزرو در دسترس است';
     }
 
-    async function loadListings() {
+    async function loadListings(city, maxPrice) {
         try {
-            const response = await fetch('/api/v1/listings', { headers: { Accept: 'application/json' } });
+            const params = new URLSearchParams();
+            if (city) { params.set('city', city); }
+            if (maxPrice) { params.set('max_price', maxPrice); }
+            const url = '/api/v1/listings' + (params.toString() ? ('?' + params.toString()) : '');
+            const response = await fetch(url, { headers: { Accept: 'application/json' } });
             if (!response.ok) { throw new Error('Unexpected status ' + response.status); }
 
             const listings = await response.json();
@@ -500,6 +515,20 @@
             caption.textContent = 'خطا در دریافت اطلاعات';
         }
     }
+
+    const cityInput = document.getElementById('city-search');
+    const priceSelect = document.getElementById('max-price');
+    const searchBtn = document.getElementById('search-btn');
+
+    function runSearch() {
+        loadListings(cityInput.value.trim(), priceSelect.value);
+    }
+
+    searchBtn.addEventListener('click', runSearch);
+    cityInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') { runSearch(); }
+    });
+    priceSelect.addEventListener('change', runSearch);
 
     loadListings();
 })();

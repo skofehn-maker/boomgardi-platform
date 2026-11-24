@@ -11,7 +11,7 @@
 
 import uuid
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -238,12 +238,22 @@ async def add_room(
     response_model=list[ListingResponse],
     summary="List published listings",
 )
-async def list_published_listings(db: AsyncSession = Depends(get_db)) -> list[Listing]:
-    result = await db.scalars(
-        select(Listing)
-        .where(Listing.status == "published")
-        .order_by(Listing.created_at.desc())
-    )
+async def list_published_listings(
+    city: str | None = Query(default=None, description="Filter by city (substring, case-insensitive)"),
+    max_price: float | None = Query(default=None, description="Only listings with a room priced at most this much"),
+    db: AsyncSession = Depends(get_db),
+) -> list[Listing]:
+    stmt = select(Listing).where(Listing.status == "published")
+    if city:
+        stmt = stmt.where(Listing.city.ilike(f"%{city}%"))
+    if max_price is not None:
+        stmt = stmt.where(
+            Listing.id.in_(
+                select(Room.listing_id).where(Room.price_per_night <= max_price)
+            )
+        )
+    stmt = stmt.order_by(Listing.created_at.desc())
+    result = await db.scalars(stmt)
     return list(result.all())
 
 

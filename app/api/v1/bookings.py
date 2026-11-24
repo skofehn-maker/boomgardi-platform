@@ -240,6 +240,32 @@ async def _load_host_booking(
     return booking
 
 
+async def _load_mutable_booking(
+    db: AsyncSession, booking_id: uuid.UUID, current_user: User
+) -> Booking:
+    """Fetch a booking the caller may pay/cancel: its guest owner or hosting host."""
+    booking = await db.get(Booking, booking_id)
+    if booking is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="رزرو یافت نشد"
+        )
+
+    room = await db.get(Room, booking.room_id)
+    listing = await db.get(Listing, room.listing_id) if room is not None else None
+    if listing is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="رزرو یافت نشد"
+        )
+
+    if booking.guest_id != current_user.id and listing.host_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="این رزرو مربوط به شما نیست",
+        )
+
+    return booking
+
+
 @router.patch(
     "/{booking_id}/confirm",
     response_model=BookingResponse,
@@ -290,10 +316,43 @@ async def cancel_booking(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Booking:
-    booking = await _load_host_booking(db, booking_id, current_user)
+    booking = await _load_mutable_booking(db, booking_id, current_user)
 
     if booking.status != "cancelled":
         booking.status = "cancelled"
+        await db.commit()
+        await db.refresh(booking)
+
+    return booking
+
+
+@router.patch(
+    "/{booking_id}/pay",
+    response_model=BookingResponse,
+    summary="Pay for a booking (mock: pending -> confirmed)",
+)
+async def pay_booking(
+    booking_id: uuid.UUID,
+    idempotency_key: str = Header(
+        ...,
+        alias="Idempotency-Key",
+        min_length=8,
+        max_length=128,
+        description="Unique key per payment attempt; replaying it is a no-op.",
+    ),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Booking:
+    booking = await _load_mutable_booking(db, booking_id, current_user)
+
+    if booking.status == "cancelled":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="رزرو لغوشده قابل پرداخت نیست",
+        )
+
+    if booking.status != "confirmed":
+        booking.status = "confirmed"
         await db.commit()
         await db.refresh(booking)
 
