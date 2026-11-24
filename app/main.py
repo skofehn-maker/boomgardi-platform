@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -24,8 +24,8 @@ async def health_check():
 
 
 @app.get("/", include_in_schema=False)
-async def index():
-    return RedirectResponse(url="/login")
+async def index(request: Request):
+    return templates.TemplateResponse(request=request, name="index.html")
 
 
 @app.get("/login", include_in_schema=False)

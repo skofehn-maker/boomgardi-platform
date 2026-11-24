@@ -2,6 +2,7 @@
 
 ``POST /api/v1/listings`` lets an authenticated user create a listing as its host.
 ``GET /api/v1/listings`` is public and only ever returns published listings.
+``GET /api/v1/listings/admin`` is the admin-only view of every listing.
 """
 
 import uuid
@@ -11,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_admin, get_current_user
 from app.core.database import get_db
 from app.models.listing import Listing
 from app.models.user import User
@@ -81,6 +82,22 @@ async def create_listing(
         return await _load_listing(db, duplicate.id)
 
     return await _load_listing(db, listing.id)
+
+
+@router.get(
+    "/admin",
+    response_model=list[ListingResponse],
+    summary="List every listing, whatever its status (admin only)",
+)
+async def list_all_listings(
+    db: AsyncSession = Depends(get_db),
+    _admin: User = Depends(get_current_admin),
+) -> list[Listing]:
+    """Admin read path: drafts, published and archived listings alike (ADR 0003)."""
+    result = await db.scalars(
+        select(Listing).order_by(Listing.created_at.desc())
+    )
+    return list(result.all())
 
 
 @router.get(
