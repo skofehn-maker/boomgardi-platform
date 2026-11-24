@@ -167,6 +167,9 @@
             overflow: hidden;
         }
 
+        /* The calendar popup must escape the card's rounded-corner clipping. */
+        .booking-card { overflow: visible; }
+
         .card-head { padding: 16px 20px; border-bottom: 1px solid #d7ccc8; }
         .card-title { font-size: 15px; font-weight: 700; color: #3e2723; }
         .card-sub { margin-top: 4px; font-size: 12px; color: #6f4e37; }
@@ -203,7 +206,7 @@
         .room-empty { padding: 24px 20px; text-align: center; font-size: 13px; color: #6f4e37; }
 
         /* ================= Form ================= */
-        .field { display: block; margin-bottom: 14px; }
+        .field { position: relative; display: block; margin-bottom: 14px; }
         .field:last-of-type { margin-bottom: 0; }
 
         .field-label { display: block; margin-bottom: 7px; font-size: 13px; font-weight: 600; color: #3e2723; }
@@ -227,6 +230,92 @@
             background: #ffffff;
             box-shadow: 0 0 0 4px rgba(111, 78, 55, 0.16);
         }
+
+        /* ================= Persian date picker ================= */
+        .date-field { position: relative; }
+
+        .date-input {
+            padding-left: 40px;
+            cursor: pointer;
+            background: #fdfbf7;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .date-icon {
+            position: absolute;
+            top: 50%;
+            left: 13px;
+            width: 17px;
+            height: 17px;
+            transform: translateY(-50%);
+            stroke: #6f4e37;
+            pointer-events: none;
+        }
+
+        .date-popup {
+            position: absolute;
+            z-index: 30;
+            width: 268px;
+            margin-top: 6px;
+            padding: 12px;
+            border: 1px solid #d7ccc8;
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 16px 34px rgba(62, 39, 35, 0.18);
+        }
+
+        .cal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .cal-title { font-size: 12.5px; font-weight: 700; color: #3e2723; }
+
+        .cal-nav {
+            padding: 5px 8px;
+            border: 1px solid #d7ccc8;
+            border-radius: 9px;
+            background: #fdfbf7;
+            color: #4e342e;
+            font-family: inherit;
+            font-size: 10.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.18s ease, background 0.18s ease;
+        }
+
+        .cal-nav:hover { border-color: #6f4e37; background: #f5f0e6; }
+
+        .cal-week,
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+
+        .cal-week span {
+            padding: 4px 0;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: #6f4e37;
+        }
+
+        .cal-day {
+            padding: 7px 0;
+            border: 1px solid transparent;
+            border-radius: 9px;
+            background: transparent;
+            color: #3e2723;
+            font-family: inherit;
+            font-size: 12.5px;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        }
+
+        .cal-day:hover:not(:disabled) { background: #f5f0e6; border-color: #d7ccc8; }
+        .cal-day.is-today { border-color: #d7ccc8; font-weight: 700; }
+        .cal-day.is-selected { background: #6f4e37; border-color: #4e342e; color: #f5f0e6; font-weight: 700; }
+        .cal-day:disabled { color: rgba(62, 39, 35, 0.28); cursor: not-allowed; }
 
         .field-row { display: grid; grid-template-columns: 1fr; gap: 12px; }
 
@@ -432,7 +521,7 @@
                 </div>
             </section>
 
-            <section class="card">
+            <section class="card booking-card">
                 <div class="card-head">
                     <h2 class="card-title">رزرو اقامتگاه</h2>
                     <p class="card-sub">اتاق و تاریخ‌های اقامت را انتخاب کنید.</p>
@@ -455,11 +544,31 @@
                         <div class="field-row">
                             <div class="field">
                                 <label class="field-label" for="check-in">تاریخ ورود</label>
-                                <input id="check-in" type="date">
+                                <div class="date-field">
+                                    <input id="check-in" class="date-input" type="text" readonly
+                                           autocomplete="off" placeholder="انتخاب تاریخ" data-iso=""
+                                           aria-haspopup="dialog" aria-expanded="false"
+                                           aria-controls="check-in-calendar">
+                                    <svg class="date-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>
+                                    </svg>
+                                </div>
+                                <div id="check-in-calendar" class="date-popup hidden" role="dialog"
+                                     aria-label="تقویم تاریخ ورود"></div>
                             </div>
                             <div class="field">
                                 <label class="field-label" for="check-out">تاریخ خروج</label>
-                                <input id="check-out" type="date">
+                                <div class="date-field">
+                                    <input id="check-out" class="date-input" type="text" readonly
+                                           autocomplete="off" placeholder="انتخاب تاریخ" data-iso=""
+                                           aria-haspopup="dialog" aria-expanded="false"
+                                           aria-controls="check-out-calendar">
+                                    <svg class="date-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>
+                                    </svg>
+                                </div>
+                                <div id="check-out-calendar" class="date-popup hidden" role="dialog"
+                                     aria-label="تقویم تاریخ خروج"></div>
                             </div>
                         </div>
 
@@ -507,6 +616,7 @@
 
 <footer class="site-footer">بومگردی — اقامت در دل طبیعت ایران © ۱۴۰۵</footer>
 
+<script src="/static/js/jalali.js"></script>
 <script>
 (function () {
     'use strict';
@@ -566,19 +676,22 @@
         return number.toLocaleString('fa-IR') + ' تومان';
     }
 
-    // Stay dates are calendar dates; format them in UTC so the day never shifts.
+    // Stay dates are calendar days stored as YYYY-MM-DD: they are shown in the
+    // Persian calendar (ADR 0008) and never shifted by a timezone.
     function formatStay(value) {
-        if (!value) { return '—'; }
-        const date = new Date(value + 'T00:00:00Z');
-        if (isNaN(date.getTime())) { return '—'; }
-        return new Intl.DateTimeFormat('fa-IR', {
-            dateStyle: 'medium', timeZone: 'UTC'
-        }).format(date);
+        return JalaliDate.format(value) || '—';
     }
 
-    function todayIso() {
-        return new Date().toISOString().slice(0, 10);
+    function addDaysIso(iso, days) {
+        const date = new Date(iso + 'T00:00:00Z');
+        if (isNaN(date.getTime())) { return ''; }
+        date.setUTCDate(date.getUTCDate() + days);
+        return date.toISOString().slice(0, 10);
     }
+
+    // The Gregorian value the API receives lives beside the Shamsi label.
+    function checkInIso() { return checkInInput.getAttribute('data-iso') || ''; }
+    function checkOutIso() { return checkOutInput.getAttribute('data-iso') || ''; }
 
     function makeIdempotencyKey() {
         if (window.crypto && typeof window.crypto.randomUUID === 'function') {
@@ -654,8 +767,8 @@
 
     function updateStaySummary() {
         const room = selectedRoom();
-        const checkIn = checkInInput.value;
-        const checkOut = checkOutInput.value;
+        const checkIn = checkInIso();
+        const checkOut = checkOutIso();
 
         if (!room || !checkIn || !checkOut) {
             staySummary.classList.add('hidden');
@@ -700,8 +813,6 @@
             rooms = Array.isArray(listing.rooms) ? listing.rooms : [];
             renderRooms(rooms);
 
-            checkInInput.min = todayIso();
-            checkOutInput.min = todayIso();
 
             pageLoading.classList.add('hidden');
             pageBody.classList.remove('hidden');
@@ -710,6 +821,146 @@
             pageError.classList.remove('hidden');
         }
     }
+
+    // --- Persian (Jalali) date picker -------------------------------------
+    function createPicker(input, popup, options) {
+        const settings = options || {};
+        let viewYear = 0;
+        let viewMonth = 1;
+
+        function currentIso() {
+            return input.getAttribute('data-iso') || '';
+        }
+
+        function setIso(value) {
+            input.setAttribute('data-iso', value || '');
+            input.value = value ? JalaliDate.format(value) : '';
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        function close() {
+            popup.classList.add('hidden');
+            input.setAttribute('aria-expanded', 'false');
+        }
+
+        function render() {
+            const offset = JalaliDate.weekdayOffset(viewYear, viewMonth);
+            const length = JalaliDate.monthLength(viewYear, viewMonth);
+            const min = typeof settings.minIso === 'function' ? settings.minIso() : '';
+            const selected = currentIso();
+            const todayIso = JalaliDate.todayIso();
+
+            let html = '<div class="cal-head">'
+                + '<button type="button" class="cal-nav" data-step="-1">ماه قبل</button>'
+                + '<span class="cal-title">' + JalaliDate.monthLabel(viewYear, viewMonth) + '</span>'
+                + '<button type="button" class="cal-nav" data-step="1">ماه بعد</button>'
+                + '</div>'
+                + '<div class="cal-week">'
+                + JalaliDate.WEEKDAYS.map(function (day) { return '<span>' + day + '</span>'; }).join('')
+                + '</div>'
+                + '<div class="cal-grid">';
+
+            for (let blank = 0; blank < offset; blank += 1) {
+                html += '<span class="cal-blank"></span>';
+            }
+
+            for (let day = 1; day <= length; day += 1) {
+                const dayIso = JalaliDate.toIso(viewYear, viewMonth, day);
+                const classes = ['cal-day'];
+                if (dayIso === selected) { classes.push('is-selected'); }
+                if (dayIso === todayIso) { classes.push('is-today'); }
+                const disabled = min && dayIso < min;
+
+                html += '<button type="button" class="' + classes.join(' ') + '"'
+                    + ' data-iso="' + dayIso + '"'
+                    + (disabled ? ' disabled' : '')
+                    + '>' + JalaliDate.faDigits(day) + '</button>';
+            }
+
+            popup.innerHTML = html + '</div>';
+        }
+
+        function open() {
+            const min = typeof settings.minIso === 'function' ? settings.minIso() : '';
+            const base = JalaliDate.toJalaliFromIso(currentIso())
+                || JalaliDate.toJalaliFromIso(min)
+                || JalaliDate.todayJalali();
+
+            viewYear = base.jy;
+            viewMonth = base.jm;
+            render();
+            popup.classList.remove('hidden');
+            input.setAttribute('aria-expanded', 'true');
+        }
+
+        function shiftMonth(step) {
+            viewMonth += step;
+            if (viewMonth < 1) { viewMonth = 12; viewYear -= 1; }
+            if (viewMonth > 12) { viewMonth = 1; viewYear += 1; }
+            render();
+        }
+
+        input.addEventListener('click', function () {
+            if (popup.classList.contains('hidden')) { open(); } else { close(); }
+        });
+
+        input.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown') {
+                event.preventDefault();
+                open();
+            }
+        });
+
+        popup.addEventListener('click', function (event) {
+            const nav = event.target.closest('.cal-nav');
+            if (nav) {
+                shiftMonth(Number(nav.getAttribute('data-step')));
+                return;
+            }
+
+            const day = event.target.closest('.cal-day');
+            if (day && !day.disabled) {
+                const picked = day.getAttribute('data-iso');
+                setIso(picked);
+                close();
+                if (typeof settings.onPick === 'function') { settings.onPick(picked); }
+            }
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!popup.classList.contains('hidden')
+                && !popup.contains(event.target)
+                && event.target !== input) {
+                close();
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') { close(); }
+        });
+
+        return { open: open, close: close, iso: currentIso };
+    }
+
+    const todayIsoValue = JalaliDate.todayIso();
+
+    const checkInPicker = createPicker(checkInInput, document.getElementById('check-in-calendar'), {
+        minIso: function () { return todayIsoValue; },
+        onPick: function (iso) {
+            // A check-out that no longer follows the new check-in is cleared.
+            if (checkOutIso() && checkOutIso() <= iso) {
+                checkOutInput.removeAttribute('data-iso');
+                checkOutInput.value = '';
+            }
+            updateStaySummary();
+        }
+    });
+
+    const checkOutPicker = createPicker(checkOutInput, document.getElementById('check-out-calendar'), {
+        minIso: function () {
+            return addDaysIso(checkInIso() || todayIsoValue, 1);
+        }
+    });
 
     [checkInInput, checkOutInput, roomSelect].forEach(function (element) {
         element.addEventListener('change', updateStaySummary);
@@ -725,8 +976,8 @@
         }
 
         const roomId = roomSelect.value;
-        const checkIn = checkInInput.value;
-        const checkOut = checkOutInput.value;
+        const checkIn = checkInIso();
+        const checkOut = checkOutIso();
 
         if (!roomId) {
             showError('برای این اقامتگاه اتاقی قابل رزرو وجود ندارد.');
@@ -775,6 +1026,10 @@
             successCard.classList.remove('hidden');
             successCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             form.reset();
+            checkInInput.removeAttribute('data-iso');
+            checkOutInput.removeAttribute('data-iso');
+            checkInPicker.close();
+            checkOutPicker.close();
             staySummary.classList.add('hidden');
         } catch (error) {
             showError('ارتباط با سرور برقرار نشد. اتصال خود را بررسی کنید.');

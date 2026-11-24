@@ -382,6 +382,8 @@
     <p class="site-footer">بومگردی — پنل میزبان © ۱۴۰۵</p>
 </main>
 
+<script src="/static/js/jalali.js"></script>
+
 <script>
 (function () {
     'use strict';
@@ -422,12 +424,10 @@
         });
     }
 
-    // Stay dates are calendar dates: format in UTC so the day never shifts.
+    // Stay dates are calendar days shown in the Persian calendar (ADR 0008);
+    // the API value stays Gregorian YYYY-MM-DD.
     function formatStay(value) {
-        if (!value) { return '—'; }
-        const date = new Date(value + 'T00:00:00Z');
-        if (isNaN(date.getTime())) { return '—'; }
-        return new Intl.DateTimeFormat('fa-IR', { dateStyle: 'medium', timeZone: 'UTC' }).format(date);
+        return JalaliDate.format(value) || '—';
     }
 
     function makeIdempotencyKey() {

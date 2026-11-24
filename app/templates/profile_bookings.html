@@ -316,6 +316,8 @@
     </div>
 </main>
 
+<script src="/static/js/jalali.js"></script>
+
 <footer class="site-footer">بومگردی — سامانه رزرو اقامتگاه‌های بومگردی © ۱۴۰۵</footer>
 
 <script>
@@ -350,11 +352,9 @@
         });
     }
 
+    // Calendar days are displayed in the Persian calendar (ADR 0008).
     function formatStay(value) {
-        if (!value) { return '—'; }
-        const date = new Date(value + 'T00:00:00Z');
-        if (isNaN(date.getTime())) { return '—'; }
-        return new Intl.DateTimeFormat('fa-IR', { dateStyle: 'medium', timeZone: 'UTC' }).format(date);
+        return JalaliDate.format(value) || '—';
     }
 
     function formatPrice(value) {
