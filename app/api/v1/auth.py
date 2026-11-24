@@ -65,5 +65,6 @@ async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)) -> T
     return TokenResponse(
         access_token=access_token,
         expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        role=user.role,
         user=UserResponse.model_validate(user),
     )

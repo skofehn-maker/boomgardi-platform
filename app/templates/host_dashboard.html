@@ -336,6 +336,7 @@
         .room-btn:hover { background: #6f4e37; color: #f5f0e6; }
 
         .room-form-card { margin-top: 18px; }
+        .bookings-card { margin-top: 18px; }
 
         /* ================= Result ================= */
         .result { margin-top: 18px; overflow: hidden; }
@@ -457,6 +458,28 @@
         <div id="my-listings-body" class="listing-list" aria-live="polite">
             <div class="list-skeleton" style="width: 62%;"></div>
             <div class="list-skeleton" style="width: 40%;"></div>
+        </div>
+    </section>
+
+    <section class="card bookings-card">
+        <div class="card-head list-head">
+            <div>
+                <h2 class="card-title">رزروهای اخیر</h2>
+                <p id="host-recent-caption" class="card-sub">در حال دریافت رزروها…</p>
+            </div>
+            <a href="/host/bookings" class="mini-btn">همه رزروها</a>
+        </div>
+
+        <div id="host-recent-error" class="alert hidden" role="alert" style="margin: 16px 20px 0;">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3h.008M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+            </svg>
+            <span id="host-recent-error-text"></span>
+        </div>
+
+        <div id="host-recent-bookings" class="listing-list" aria-live="polite">
+            <div class="list-skeleton" style="width: 58%;"></div>
+            <div class="list-skeleton" style="width: 34%;"></div>
         </div>
     </section>
 
@@ -939,7 +962,10 @@
         }
     });
 
-    myListingsRefresh.addEventListener('click', loadMyListings);
+    myListingsRefresh.addEventListener('click', function () {
+        loadMyListings();
+        loadRecentBookings();
+    });
 
     // --- Add room ---------------------------------------------------------
     const roomFormCard = document.getElementById('room-form-card');
@@ -1044,10 +1070,94 @@
         }
     });
 
+    // --- Recent bookings (the top of the host inbox) -----------------------
+    const recentBody = document.getElementById('host-recent-bookings');
+    const recentCaption = document.getElementById('host-recent-caption');
+    const recentError = document.getElementById('host-recent-error');
+    const recentErrorText = document.getElementById('host-recent-error-text');
+
+    const BOOKING_STATUS_LABELS = {
+        pending: 'در انتظار تأیید',
+        confirmed: 'تأییدشده',
+        cancelled: 'لغوشده'
+    };
+
+    function bookingDay(value) {
+        if (!value) {
+            return '—';
+        }
+        const date = new Date(String(value) + 'T00:00:00Z');
+        if (isNaN(date.getTime())) {
+            return '—';
+        }
+        return new Intl.DateTimeFormat('fa-IR', {
+            month: 'long',
+            day: 'numeric',
+            timeZone: 'Asia/Tehran'
+        }).format(date);
+    }
+
+    function bookingRow(booking) {
+        return '<div class="listing-row">'
+            + '<div class="listing-main">'
+            + '<p class="listing-title">' + escapeHtml(booking.guest_name || booking.guest_email || 'مهمان') + '</p>'
+            + '<p class="listing-meta">'
+            + escapeHtml(booking.room_name || 'اتاق')
+            + ' · ' + escapeHtml(booking.listing_title || 'اقامتگاه')
+            + ' · ' + escapeHtml(bookingDay(booking.check_in)) + ' تا ' + escapeHtml(bookingDay(booking.check_out))
+            + '</p>'
+            + '</div>'
+            + '<span class="chip"><span class="dot"></span>'
+            + escapeHtml(BOOKING_STATUS_LABELS[booking.status] || booking.status || '—')
+            + '</span>'
+            + '</div>';
+    }
+
+    async function loadRecentBookings() {
+        recentError.classList.add('hidden');
+        recentErrorText.textContent = '';
+
+        try {
+            const response = await fetch('/api/v1/bookings/host', {
+                headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' }
+            });
+
+            if (response.status === 401) {
+                logout();
+                return;
+            }
+            if (!response.ok) {
+                throw new Error('Unexpected status ' + response.status);
+            }
+
+            const bookings = await response.json();
+            const list = Array.isArray(bookings) ? bookings : [];
+            const pending = list.filter(function (item) {
+                return item.status === 'pending';
+            }).length;
+
+            if (list.length === 0) {
+                recentCaption.textContent = 'هنوز رزروی برای اقامتگاه‌های شما ثبت نشده است.';
+                recentBody.innerHTML = '<p class="list-empty">رزرو جدیدی در انتظار نیست.</p>';
+                return;
+            }
+
+            recentCaption.textContent = list.length.toLocaleString('fa-IR') + ' رزرو · '
+                + pending.toLocaleString('fa-IR') + ' در انتظار تأیید';
+            recentBody.innerHTML = list.slice(0, 3).map(bookingRow).join('');
+        } catch (error) {
+            recentBody.innerHTML = '';
+            recentCaption.textContent = 'خطا در دریافت رزروها';
+            recentErrorText.textContent = 'ارتباط با سرور برقرار نشد. اتصال خود را بررسی کنید.';
+            recentError.classList.remove('hidden');
+        }
+    }
+
     document.getElementById('logout-button').addEventListener('click', logout);
 
     showCurrentUser();
     loadMyListings();
+    loadRecentBookings();
 })();
 </script>
 </body>

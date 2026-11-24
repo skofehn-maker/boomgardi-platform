@@ -389,11 +389,22 @@
         return Boolean(payload && payload.exp && payload.exp * 1000 > Date.now());
     }
 
+    // One place decides where each role lands.
+    const ROLE_HOME = {
+        admin: '/admin',
+        host: '/host',
+        guest: '/profile'
+    };
+
+    function homeFor(role) {
+        return ROLE_HOME[role] || '/profile';
+    }
+
     // Already signed in? Go straight to the right dashboard.
     const storedToken = localStorage.getItem(STORAGE_KEY);
     if (storedToken && isTokenFresh(storedToken)) {
         const payload = decodeToken(storedToken);
-        window.location.replace(payload.role === 'admin' ? '/admin' : '/profile');
+        window.location.replace(homeFor(payload.role));
         return;
     }
 
@@ -459,9 +470,10 @@
             localStorage.setItem('token_type', payload.token_type || 'bearer');
             localStorage.setItem(USER_KEY, JSON.stringify(payload.user || {}));
 
+            // The login response carries the role next to the token.
             const claims = decodeToken(payload.access_token) || {};
-            const role = (payload.user && payload.user.role) || claims.role;
-            window.location.href = role === 'admin' ? '/admin' : '/profile';
+            const role = payload.role || (payload.user && payload.user.role) || claims.role;
+            window.location.href = homeFor(role);
         } catch (error) {
             showError('ارتباط با سرور برقرار نشد. اتصال شبکه را بررسی کنید.');
         } finally {

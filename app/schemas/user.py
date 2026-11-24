@@ -28,7 +28,10 @@ class UserResponse(BaseModel):
 
 
 class TokenResponse(BaseModel):
+    """Token envelope; ``role`` lets the clients route the user after login."""
+
     access_token: str
     token_type: str = "bearer"
     expires_in: int
+    role: str
     user: UserResponse
