@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد مدیریت | بومگردی</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #f5f0e6;
+            color: #3e2723;
+            font-family: "Vazirmatn", "IRANSans", "Segoe UI", Tahoma, Arial, sans-serif;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a { color: inherit; text-decoration: none; }
+        button { font-family: inherit; }
+        svg { display: block; }
+        p, h1, h2, h3, h4 { margin: 0; }
+
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .animate-spin { animation: spin 0.9s linear infinite; }
+        .translate-x-full { transform: translateX(100%); }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.45; }
+        }
+
+        .icon { stroke: currentColor; fill: none; }
+
+        /* ================= Sidebar ================= */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 30;
+            background: rgba(62, 39, 35, 0.5);
+            backdrop-filter: blur(2px);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            z-index: 40;
+            width: 272px;
+            display: flex;
+            flex-direction: column;
+            background: #3e2723;
+            color: #d7ccc8;
+            box-shadow: -14px 0 40px rgba(62, 39, 35, 0.24);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-head {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            height: 66px;
+            padding: 0 18px;
+            border-bottom: 1px solid rgba(215, 204, 200, 0.22);
+        }
+
+        .sidebar-logo {
+            width: 38px;
+            height: 38px;
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: #6f4e37;
+            border: 1px solid #4e342e;
+            box-shadow: 0 8px 18px rgba(78, 52, 46, 0.45);
+        }
+
+        .sidebar-logo svg { width: 20px; height: 20px; stroke: #f5f0e6; }
+
+        .sidebar-brand-name { font-size: 14px; font-weight: 700; color: #f5f0e6; }
+        .sidebar-brand-note { font-size: 11px; color: #d7ccc8; margin-top: 2px; }
+
+        .sidebar-close {
+            margin-right: auto;
+            padding: 6px;
+            border: 0;
+            border-radius: 9px;
+            background: transparent;
+            color: #d7ccc8;
+            cursor: pointer;
+            transition: background 0.18s ease, color 0.18s ease;
+        }
+
+        .sidebar-close:hover { background: rgba(245, 240, 230, 0.12); color: #f5f0e6; }
+        .sidebar-close svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+
+        .nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 18px 12px;
+        }
+
+        .nav-caption {
+            padding: 0 12px 8px;
+            font-size: 11px;
+            font-weight: 500;
+            color: rgba(215, 204, 200, 0.65);
+        }
+
+        .nav-caption + .nav-caption { padding-top: 18px; }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 12px;
+            margin-bottom: 4px;
+            border-radius: 12px;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #d7ccc8;
+            transition: background 0.18s ease, color 0.18s ease;
+        }
+
+        .nav-link svg { width: 19px; height: 19px; stroke: #d7ccc8; fill: none; transition: stroke 0.18s ease; }
+
+        .nav-link:hover { background: rgba(245, 240, 230, 0.08); color: #f5f0e6; }
+        .nav-link:hover svg { stroke: #f5f0e6; }
+
+        .nav-link.active {
+            background: #6f4e37;
+            color: #f5f0e6;
+            box-shadow: inset 0 0 0 1px rgba(245, 240, 230, 0.24);
+        }
+
+        .nav-link.active svg { stroke: #f5f0e6; }
+
+        .nav-link.disabled { color: rgba(215, 204, 200, 0.45); cursor: not-allowed; }
+        .nav-link.disabled:hover { background: rgba(245, 240, 230, 0.04); }
+
+        .sidebar-foot { border-top: 1px solid rgba(215, 204, 200, 0.22); padding: 14px; }
+
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(245, 240, 230, 0.07);
+        }
+
+        .sidebar-user-text { min-width: 0; }
+        .sidebar-user-name { font-size: 13px; font-weight: 600; color: #f5f0e6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sidebar-user-mail { font-size: 11px; color: #d7ccc8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .avatar {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #6f4e37;
+            color: #f5f0e6;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .avatar-lg { width: 38px; height: 38px; font-size: 14px; }
+
+        /* ================= Layout ================= */
+        .main {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: margin 0.2s ease;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            border-bottom: 1px solid #d7ccc8;
+            background: rgba(253, 251, 247, 0.92);
+            backdrop-filter: blur(10px);
+        }
+
+        .topbar-inner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            height: 66px;
+            padding: 0 20px;
+        }
+
+        .icon-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            border: 0;
+            border-radius: 10px;
+            background: transparent;
+            color: #6f4e37;
+            cursor: pointer;
+            transition: background 0.18s ease, color 0.18s ease;
+        }
+
+        .icon-btn svg { width: 19px; height: 19px; stroke: currentColor; fill: none; }
+        .icon-btn:hover { background: #f5f0e6; color: #3e2723; }
+
+        .icon-btn.danger:hover { background: #f5f0e6; color: #4e342e; }
+
+        .burger { display: flex; }
+
+        .topbar-titles { min-width: 0; }
+        .topbar-crumb { font-size: 11px; color: #6f4e37; }
+        .topbar-title { font-size: 14px; font-weight: 700; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .topbar-actions { margin-right: auto; display: flex; align-items: center; gap: 8px; }
+
+        .search-wrap { position: relative; display: none; }
+
+        .search-wrap svg {
+            position: absolute;
+            top: 50%;
+            right: 11px;
+            transform: translateY(-50%);
+            width: 15px;
+            height: 15px;
+            stroke: #6f4e37;
+            fill: none;
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 214px;
+            padding: 9px 34px 9px 12px;
+            border: 1px solid #d7ccc8;
+            border-radius: 11px;
+            background: #fdfbf7;
+            color: #3e2723;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        .search-input::placeholder { color: rgba(62, 39, 35, 0.45); }
+        .search-input:focus { border-color: #6f4e37; background: #ffffff; box-shadow: 0 0 0 4px rgba(111, 78, 55, 0.14); }
+
+        .bell { position: relative; }
+
+        .bell-dot {
+            position: absolute;
+            top: 7px;
+            left: 8px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #6f4e37;
+            box-shadow: 0 0 0 2px #fdfbf7;
+        }
+
+        .topbar-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-right: 10px;
+            border-right: 1px solid #d7ccc8;
+        }
+
+        .topbar-user-text { display: none; line-height: 1.3; }
+        .topbar-user-name { font-size: 12px; font-weight: 700; color: #3e2723; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .topbar-user-role { font-size: 11px; color: #6f4e37; margin-top: 1px; }
+
+        .content { flex: 1; padding: 24px 20px 32px; }
+
+        .page-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .page-title { font-size: 19px; font-weight: 700; color: #3e2723; }
+        .page-subtitle { margin-top: 5px; font-size: 13px; color: #6f4e37; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: 1px solid #d7ccc8;
+            border-radius: 12px;
+            background: #6f4e37;
+            color: #f5f0e6;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 6px 14px rgba(111, 78, 55, 0.22);
+            transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
+        .btn:hover { background: #4e342e; border-color: #3e2723; box-shadow: 0 10px 22px rgba(78, 52, 46, 0.28); }
+        .btn:focus-visible { outline: 3px solid rgba(111, 78, 55, 0.4); outline-offset: 2px; }
+        .btn:disabled { opacity: 0.65; cursor: not-allowed; box-shadow: none; }
+
+        /* ================= KPI cards ================= */
+        .kpis {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .kpi {
+            background: #ffffff;
+            border: 1px solid #d7ccc8;
+            border-radius: 18px;
+            padding: 17px 18px;
+            box-shadow: 0 1px 2px rgba(62, 39, 35, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .kpi:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(62, 39, 35, 0.12); }
+
+        .kpi-head { display: flex; align-items: center; justify-content: space-between; }
+        .kpi-label { font-size: 13px; color: #6f4e37; }
+
+        .kpi-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
+            border: 1px solid #d7ccc8;
+        }
+
+        .kpi-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+        .kpi-icon.green { background: #f5f0e6; color: #6f4e37; }
+        .kpi-icon.indigo { background: #fdfbf7; color: #4e342e; }
+        .kpi-icon.teal { background: #f5f0e6; color: #4e342e; }
+        .kpi-icon.amber { background: #fdfbf7; color: #6f4e37; }
+
+        .kpi-value { margin-top: 12px; font-size: 27px; font-weight: 700; letter-spacing: -0.5px; color: #3e2723; }
+        .kpi-note { margin-top: 3px; font-size: 11.5px; color: rgba(62, 39, 35, 0.55); }
+
+        /* ================= Table ================= */
+        .panel {
+            background: #ffffff;
+            border: 1px solid #d7ccc8;
+            border-radius: 18px;
+            box-shadow: 0 1px 2px rgba(62, 39, 35, 0.06);
+            overflow: hidden;
+        }
+
+        .panel-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 15px 18px;
+            border-bottom: 1px solid #d7ccc8;
+        }
+
+        .panel-title { font-size: 15px; font-weight: 700; color: #3e2723; }
+        .panel-caption { margin-top: 3px; font-size: 12px; color: #6f4e37; }
+
+        .table-scroll { overflow-x: auto; }
+
+        table { width: 100%; min-width: 760px; border-collapse: collapse; text-align: right; font-size: 13.5px; }
+
+        thead th {
+            padding: 11px 18px;
+            background: #f5f0e6;
+            border-bottom: 1px solid #d7ccc8;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #6f4e37;
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(215, 204, 200, 0.7);
+            vertical-align: middle;
+            white-space: nowrap;
+            color: #3e2723;
+        }
+
+        tbody tr:last-child td { border-bottom: 0; }
+        tbody tr:hover { background: #fdfbf7; }
+        .col-center { text-align: center; }
+
+        .skeleton {
+            height: 13px;
+            border-radius: 6px;
+            background: #d7ccc8;
+            animation: pulse 1.4s ease-in-out infinite;
+        }
+
+        .user-cell { display: flex; align-items: center; gap: 11px; }
+
+        .avatar-0 { background: linear-gradient(135deg, #6f4e37, #4e342e); }
+        .avatar-1 { background: linear-gradient(135deg, #4e342e, #3e2723); }
+        .avatar-2 { background: linear-gradient(135deg, #3e2723, #6f4e37); }
+        .avatar-3 { background: linear-gradient(135deg, #6f4e37, #3e2723); }
+        .avatar-4 { background: linear-gradient(135deg, #4e342e, #6f4e37); }
+
+        .user-name { font-size: 13.5px; font-weight: 600; color: #3e2723; }
+        .user-id { margin-top: 2px; font-size: 11px; color: rgba(62, 39, 35, 0.5); }
+
+        .mail-link { font-size: 13px; color: #6f4e37; }
+        .mail-link:hover { color: #4e342e; }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11.5px;
+            font-weight: 600;
+            border: 1px solid #d7ccc8;
+            white-space: nowrap;
+        }
+
+        .badge-admin { background: #4e342e; color: #f5f0e6; border-color: #3e2723; }
+        .badge-guest { background: #f5f0e6; color: #6f4e37; border-color: #d7ccc8; }
+        .badge-active { background: #fdfbf7; color: #6f4e37; border-color: #d7ccc8; }
+        .badge-inactive { background: #f5f0e6; color: #4e342e; border-color: #d7ccc8; }
+
+        .dot { width: 6px; height: 6px; border-radius: 50%; }
+        .dot-green { background: #6f4e37; }
+        .dot-rose { background: #4e342e; }
+
+        .muted { color: rgba(62, 39, 35, 0.6); font-size: 12.5px; }
+
+        .row-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 10px;
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6f4e37;
+            transition: background 0.18s ease, color 0.18s ease;
+        }
+
+        .row-action svg { width: 15px; height: 15px; stroke: currentColor; fill: none; }
+        .row-action:hover { background: #f5f0e6; color: #4e342e; }
+
+        .panel-foot { padding: 11px 18px; border-top: 1px solid #d7ccc8; font-size: 12px; color: rgba(62, 39, 35, 0.6); }
+
+        /* ================= States ================= */
+        .state { padding: 48px 24px; text-align: center; }
+
+        .state-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 46px;
+            height: 46px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: #f5f0e6;
+            border: 1px solid #d7ccc8;
+            color: #4e342e;
+        }
+
+        .state-icon svg { width: 22px; height: 22px; stroke: currentColor; fill: none; }
+        .state-title { margin-top: 12px; font-size: 13.5px; font-weight: 700; color: #3e2723; }
+        .state-text { margin-top: 5px; font-size: 13px; color: #6f4e37; }
+
+        .empty-title { font-size: 14px; font-weight: 600; color: #3e2723; }
+        .empty-text { margin-top: 5px; font-size: 12px; color: rgba(62, 39, 35, 0.55); }
+
+        .site-footer { margin-top: 24px; text-align: center; font-size: 11.5px; color: #6f4e37; }
+
+        /* ================= Responsive ================= */
+        @media (min-width: 640px) {
+            .kpis { grid-template-columns: repeat(2, 1fr); }
+            .content { padding: 26px 24px 36px; }
+            .topbar-inner { padding: 0 24px; }
+            .search-wrap { display: block; }
+            .topbar-user-text { display: block; }
+            .mobile-search { display: none; }
+        }
+
+        @media (min-width: 768px) {
+            .sidebar { transform: none !important; }
+            .overlay { display: none !important; }
+            .main { margin-right: 272px; }
+            .burger { display: none; }
+        }
+
+        @media (min-width: 1280px) {
+            .kpis { grid-template-columns: repeat(4, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="sidebar-overlay" class="overlay hidden"></div>
+
+<!-- Sidebar (fixed on the right for RTL) -->
+<aside id="sidebar" class="sidebar translate-x-full" aria-label="منوی اصلی">
+
+    <div class="sidebar-head">
+        <div class="sidebar-logo">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75 3.75 9v10.5a.75.75 0 0 0 .75.75h4.5V15a3 3 0 0 1 6 0v5.25h4.5a.75.75 0 0 0 .75-.75V9L12 3.75Z"/>
+            </svg>
+        </div>
+        <div>
+            <p class="sidebar-brand-name">بومگردی</p>
+            <p class="sidebar-brand-note">پنل مدیریت</p>
+        </div>
+        <button id="sidebar-close" type="button" class="sidebar-close" aria-label="بستن منو">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+
+    <nav class="nav">
+        <p class="nav-caption">عمومی</p>
+
+        <a href="/admin" class="nav-link active">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/>
+            </svg>
+            داشبورد
+        </a>
+
+        <a href="#users" class="nav-link">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
+            </svg>
+            کاربران
+        </a>
+
+        <a href="#" class="nav-link disabled" title="به‌زودی" aria-disabled="true">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12 12 3l9.75 9M4.5 9.75v9a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5v-9"/>
+            </svg>
+            اقامتگاه‌ها
+        </a>
+
+        <a href="#" class="nav-link disabled" title="به‌زودی" aria-disabled="true">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>
+            </svg>
+            رزروها
+        </a>
+
+        <p class="nav-caption">مدیریت</p>
+
+        <a href="/profile" class="nav-link">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a7.5 7.5 0 0 1 15 0"/>
+            </svg>
+            پروفایل من
+        </a>
+
+        <a href="#" class="nav-link disabled" title="به‌زودی" aria-disabled="true">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 3.75h3m-8.4 3.6h13.8a1.35 1.35 0 0 1 1.35 1.35v10.2a1.35 1.35 0 0 1-1.35 1.35H5.1a1.35 1.35 0 0 1-1.35-1.35V8.7A1.35 1.35 0 0 1 5.1 7.35Z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 12a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Z"/>
+            </svg>
+            تنظیمات
+        </a>
+    </nav>
+
+    <div class="sidebar-foot">
+        <div class="sidebar-user">
+            <div id="sidebar-avatar" class="avatar avatar-lg">م</div>
+            <div class="sidebar-user-text">
+                <p id="sidebar-name" class="sidebar-user-name">مدیر سامانه</p>
+                <p id="sidebar-email" class="sidebar-user-mail" dir="ltr">—</p>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<!-- Page wrapper -->
+<div class="main">
+
+    <header class="topbar">
+        <div class="topbar-inner">
+            <button id="sidebar-open" type="button" class="icon-btn burger" aria-label="باز کردن منو">
+                <svg fill="none" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"/>
+                </svg>
+            </button>
+
+            <div class="topbar-titles">
+                <p class="topbar-crumb">پنل مدیریت / کاربران</p>
+                <h1 class="topbar-title">مدیریت کاربران</h1>
+            </div>
+
+            <div class="topbar-actions">
+                <label class="search-wrap" for="table-search">
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+                    </svg>
+                    <input id="table-search" class="search-input" type="search" placeholder="جستجوی کاربر…">
+                </label>
+
+                <button type="button" class="icon-btn bell" aria-label="اعلان‌ها">
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/>
+                    </svg>
+                    <span class="bell-dot"></span>
+                </button>
+
+                <div class="topbar-user">
+                    <div id="topbar-avatar" class="avatar">م</div>
+                    <div class="topbar-user-text">
+                        <p id="topbar-name" class="topbar-user-name">مدیر سامانه</p>
+                        <p class="topbar-user-role">مدیر ارشد</p>
+                    </div>
+                    <button id="logout-button" type="button" class="icon-btn danger" title="خروج" aria-label="خروج از حساب">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="content">
+        <div class="page-head">
+            <div>
+                <h2 class="page-title">کاربران سامانه</h2>
+                <p id="page-date" class="page-subtitle">در حال بارگذاری تاریخ…</p>
+            </div>
+            <button id="refresh-button" type="button" class="btn">
+                <svg id="refresh-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992V4.356m0 4.992-3.183-3.183a8.25 8.25 0 0 0-13.803 3.7M2.985 19.644v-4.992m0 0h4.992m-4.992 0 3.183 3.182a8.25 8.25 0 0 0 13.803-3.7"/>
+                </svg>
+                بروزرسانی
+            </button>
+        </div>
+
+        <!-- KPI cards -->
+        <section class="kpis" aria-label="آمار کلی">
+            <div class="kpi">
+                <div class="kpi-head">
+                    <p class="kpi-label">کل کاربران</p>
+                    <span class="kpi-icon green">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
+                        </svg>
+                    </span>
+                </div>
+                <p id="stat-total" class="kpi-value">—</p>
+                <p class="kpi-note">ثبت‌نام‌شده در سامانه</p>
+            </div>
+
+            <div class="kpi">
+                <div class="kpi-head">
+                    <p class="kpi-label">مدیران</p>
+                    <span class="kpi-icon indigo">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/>
+                        </svg>
+                    </span>
+                </div>
+                <p id="stat-admins" class="kpi-value">—</p>
+                <p class="kpi-note">دسترسی کامل به پنل</p>
+            </div>
+
+            <div class="kpi">
+                <div class="kpi-head">
+                    <p class="kpi-label">حساب‌های فعال</p>
+                    <span class="kpi-icon teal">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
+                        </svg>
+                    </span>
+                </div>
+                <p id="stat-active" class="kpi-value">—</p>
+                <p class="kpi-note">بدون محدودیت ورود</p>
+            </div>
+
+            <div class="kpi">
+                <div class="kpi-head">
+                    <p class="kpi-label">مهمان‌ها</p>
+                    <span class="kpi-icon amber">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/>
+                        </svg>
+                    </span>
+                </div>
+                <p id="stat-guests" class="kpi-value">—</p>
+                <p class="kpi-note">کاربران عادی</p>
+            </div>
+        </section>
+
+        <!-- Users table -->
+        <section id="users" class="panel">
+            <div class="panel-head">
+                <div>
+                    <h3 class="panel-title">فهرست کاربران</h3>
+                    <p id="table-caption" class="panel-caption">در حال دریافت اطلاعات…</p>
+                </div>
+                <div class="mobile-search">
+                    <input id="table-search-mobile" class="search-input" type="search" placeholder="جستجو…">
+                </div>
+            </div>
+
+            <div id="table-error" class="state hidden">
+                <div class="state-icon">
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3h.008M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                </div>
+                <p id="table-error-title" class="state-title">دریافت اطلاعات ناموفق بود</p>
+                <p id="table-error-text" class="state-text"></p>
+            </div>
+
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">کاربر</th>
+                            <th scope="col">ایمیل</th>
+                            <th scope="col">نقش</th>
+                            <th scope="col">وضعیت</th>
+                            <th scope="col">تاریخ عضویت</th>
+                            <th scope="col" class="col-center">عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-body">
+                        <tr>
+                            <td colspan="6"><div class="skeleton" style="width:100%"></div></td>
+                        </tr>
+                        <tr>
+                            <td colspan="6"><div class="skeleton" style="width:82%"></div></td>
+                        </tr>
+                        <tr>
+                            <td colspan="6"><div class="skeleton" style="width:64%"></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel-foot">
+                <p id="table-footer">—</p>
+            </div>
+        </section>
+
+        <p class="site-footer">بومگردی — پنل مدیریت © ۱۴۰۵</p>
+    </main>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    const STORAGE_KEY = 'access_token';
+    const USER_KEY = 'current_user';
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    function decodeToken(token) {
+        try {
+            const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+            const padded = base64.padEnd(base64.length + (4 - (base64.length % 4)) % 4, '=');
+            const bytes = atob(padded).split('').map(function (char) {
+                return '%' + ('00' + char.charCodeAt(0).toString(16)).slice(-2);
+            }).join('');
+            return JSON.parse(decodeURIComponent(bytes));
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function signOut() {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(USER_KEY);
+        localStorage.removeItem('token_type');
+        window.location.replace('/login');
+    }
+
+    const token = localStorage.getItem(STORAGE_KEY);
+    const claims = token ? decodeToken(token) : null;
+    if (!claims || !claims.exp || claims.exp * 1000 <= Date.now()) {
+        signOut();
+        return;
+    }
+    if (claims.role !== 'admin') {
+        window.location.replace('/profile');
+        return;
+    }
+
+    // --- Header identity -------------------------------------------------
+    const displayName = claims.name || claims.email || 'مدیر سامانه';
+    const initials = (displayName.trim().charAt(0) || 'م').toUpperCase();
+    ['topbar-avatar', 'sidebar-avatar'].forEach(function (id) {
+        document.getElementById(id).textContent = initials;
+    });
+    document.getElementById('topbar-name').textContent = displayName;
+    document.getElementById('sidebar-name').textContent = displayName;
+    document.getElementById('sidebar-email').textContent = claims.email || '—';
+
+    const faDate = new Intl.DateTimeFormat('fa-IR', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+        timeZone: 'Asia/Tehran'
+    });
+    document.getElementById('page-date').textContent = faDate.format(new Date());
+
+    // --- Drawer ----------------------------------------------------------
+    function openSidebar() {
+        sidebar.classList.remove('translate-x-full');
+        overlay.classList.remove('hidden');
+    }
+    function closeSidebar() {
+        sidebar.classList.add('translate-x-full');
+        overlay.classList.add('hidden');
+    }
+    document.getElementById('sidebar-open').addEventListener('click', openSidebar);
+    document.getElementById('sidebar-close').addEventListener('click', closeSidebar);
+    overlay.addEventListener('click', closeSidebar);
+    document.getElementById('logout-button').addEventListener('click', signOut);
+
+    // --- Helpers ---------------------------------------------------------
+    const escapeHtml = function (value) {
+        return String(value === null || value === undefined ? '' : value).replace(/[&<>"']/g, function (char) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+        });
+    };
+
+    // The API transports naive UTC datetimes; normalise before formatting.
+    function asDate(value) {
+        if (!value) { return null; }
+        const hasZone = /Z$|[+-]\d{2}:?\d{2}$/.test(value);
+        const date = new Date(hasZone ? value : value + 'Z');
+        return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    const faShortDate = new Intl.DateTimeFormat('fa-IR', {
+        year: 'numeric', month: 'short', day: 'numeric', timeZone: 'Asia/Tehran'
+    });
+    const faDateTime = new Intl.DateTimeFormat('fa-IR', {
+        dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Tehran'
+    });
+
+    function roleBadge(role) {
+        if (role === 'admin') {
+            return '<span class="badge badge-admin">مدیر</span>';
+        }
+        return '<span class="badge badge-guest">مهمان</span>';
+    }
+
+    function statusBadge(isActive) {
+        if (isActive) {
+            return '<span class="badge badge-active"><span class="dot dot-green"></span>فعال</span>';
+        }
+        return '<span class="badge badge-inactive"><span class="dot dot-rose"></span>غیرفعال</span>';
+    }
+
+    const AVATAR_CLASSES = ['avatar-0', 'avatar-1', 'avatar-2', 'avatar-3', 'avatar-4'];
+
+    function avatarClass(email) {
+        let hash = 0;
+        const value = String(email || '');
+        for (let index = 0; index < value.length; index += 1) {
+            hash = (hash * 31 + value.charCodeAt(index)) % 997;
+        }
+        return AVATAR_CLASSES[hash % AVATAR_CLASSES.length];
+    }
+
+    function initialsOf(user) {
+        const source = (user.full_name || user.email || '؟').trim();
+        const parts = source.split(/[\s@._-]+/).filter(Boolean);
+        if (parts.length >= 2) {
+            return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+        }
+        return source.slice(0, 2).toUpperCase();
+    }
+
+    // --- State -----------------------------------------------------------
+    let users = [];
+    let searchTerm = '';
+
+    const tbody = document.getElementById('users-body');
+    const caption = document.getElementById('table-caption');
+    const footer = document.getElementById('table-footer');
+    const errorBox = document.getElementById('table-error');
+    const errorTitle = document.getElementById('table-error-title');
+    const errorText = document.getElementById('table-error-text');
+
+    function renderStats() {
+        const admins = users.filter(function (user) { return user.role === 'admin'; }).length;
+        const active = users.filter(function (user) { return user.is_active; }).length;
+        document.getElementById('stat-total').textContent = users.length.toLocaleString('fa-IR');
+        document.getElementById('stat-admins').textContent = admins.toLocaleString('fa-IR');
+        document.getElementById('stat-active').textContent = active.toLocaleString('fa-IR');
+        document.getElementById('stat-guests').textContent = (users.length - admins).toLocaleString('fa-IR');
+    }
+
+    function renderTable() {
+        const needle = searchTerm.trim().toLowerCase();
+        const rows = users.filter(function (user) {
+            if (!needle) { return true; }
+            return [user.full_name, user.email, user.role]
+                .filter(Boolean)
+                .some(function (field) { return String(field).toLowerCase().indexOf(needle) !== -1; });
+        });
+
+        caption.textContent = rows.length.toLocaleString('fa-IR') + ' کاربر نمایش داده می‌شود';
+        footer.textContent = 'مجموع ' + users.length.toLocaleString('fa-IR') + ' کاربر ثبت‌شده در سامانه';
+
+        if (rows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="state">'
+                + '<p class="empty-title">کاربری یافت نشد</p>'
+                + '<p class="empty-text">عبارت جستجو را تغییر دهید.</p>'
+                + '</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = rows.map(function (user) {
+            const created = asDate(user.created_at);
+            const createdLabel = created ? faShortDate.format(created) : '—';
+            const createdTitle = created ? faDateTime.format(created) : '';
+            const name = user.full_name || 'بدون نام';
+            const encodedEmail = encodeURIComponent(user.email || '');
+
+            return '<tr>'
+                + '<td>'
+                + '<div class="user-cell">'
+                + '<span class="avatar ' + avatarClass(user.email) + '">' + escapeHtml(initialsOf(user)) + '</span>'
+                + '<div><p class="user-name">' + escapeHtml(name) + '</p>'
+                + '<p class="user-id" dir="ltr">' + escapeHtml(String(user.id).slice(0, 8)) + '…</p></div>'
+                + '</div></td>'
+                + '<td><a class="mail-link" dir="ltr" href="mailto:' + escapeHtml(encodedEmail) + '">' + escapeHtml(user.email) + '</a></td>'
+                + '<td>' + roleBadge(user.role) + '</td>'
+                + '<td>' + statusBadge(Boolean(user.is_active)) + '</td>'
+                + '<td class="muted" title="' + escapeHtml(createdTitle) + '">' + escapeHtml(createdLabel) + '</td>'
+                + '<td class="col-center">'
+                + '<a href="mailto:' + escapeHtml(encodedEmail) + '" class="row-action">'
+                + '<svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0-9.75 6.75L2.25 6.75"/></svg>'
+                + 'ایمیل</a></td>'
+                + '</tr>';
+        }).join('');
+    }
+
+    function showError(title, message) {
+        errorTitle.textContent = title;
+        errorText.textContent = message;
+        errorBox.classList.remove('hidden');
+    }
+
+    function hideError() {
+        errorBox.classList.add('hidden');
+    }
+
+    const refreshIcon = document.getElementById('refresh-icon');
+    const refreshButton = document.getElementById('refresh-button');
+
+    async function loadUsers() {
+        refreshButton.disabled = true;
+        refreshIcon.classList.add('animate-spin');
+        hideError();
+
+        try {
+            const response = await fetch('/api/v1/users/', {
+                headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' }
+            });
+
+            if (response.status === 401) {
+                signOut();
+                return;
+            }
+            if (response.status === 403) {
+                tbody.innerHTML = '';
+                caption.textContent = 'دسترسی محدود';
+                showError('دسترسی غیرمجاز', 'این فهرست فقط برای مدیران سامانه قابل مشاهده است.');
+                return;
+            }
+            if (!response.ok) {
+                throw new Error('Unexpected status ' + response.status);
+            }
+
+            users = await response.json();
+            renderStats();
+            renderTable();
+        } catch (error) {
+            tbody.innerHTML = '';
+            caption.textContent = 'خطا در دریافت اطلاعات';
+            showError('ارتباط با سرور برقرار نشد', 'اتصال شبکه را بررسی کنید و دوباره تلاش کنید.');
+        } finally {
+            refreshButton.disabled = false;
+            refreshIcon.classList.remove('animate-spin');
+        }
+    }
+
+    function bindSearch(element) {
+        if (!element) { return; }
+        element.addEventListener('input', function (event) {
+            searchTerm = event.target.value;
+            const other = element.id === 'table-search'
+                ? document.getElementById('table-search-mobile')
+                : document.getElementById('table-search');
+            if (other && other.value !== event.target.value) {
+                other.value = event.target.value;
+            }
+            renderTable();
+        });
+    }
+
+    bindSearch(document.getElementById('table-search'));
+    bindSearch(document.getElementById('table-search-mobile'));
+    refreshButton.addEventListener('click', loadUsers);
+
+    loadUsers();
+})();
+</script>
+</body>
+</html>

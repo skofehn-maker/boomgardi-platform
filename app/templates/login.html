@@ -1,42 +1,474 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>ورود به سامانه | بومگردی</title>
     <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html, body { margin: 0; padding: 0; }
+
         body {
-            background-color: #f0f0f0;
-            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            font-family: "Vazirmatn", "IRANSans", "Segoe UI", Tahoma, Arial, sans-serif;
+            color: #3e2723;
+            background-color: #f5f0e6;
+            background-image: radial-gradient(circle at 10% 6%, #fdfbf7 0%, rgba(253, 251, 247, 0) 58%),
+                              radial-gradient(circle at 90% 94%, #d7ccc8 0%, rgba(215, 204, 200, 0) 52%);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            position: relative;
         }
-        .container {
-            width: 300px;
-            margin: auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(80px);
+            z-index: 0;
         }
-        button {
-            background-color: green;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
+
+        body::before {
+            width: 420px;
+            height: 420px;
+            top: -160px;
+            right: -120px;
+            background: rgba(111, 78, 55, 0.14);
+        }
+
+        body::after {
+            width: 480px;
+            height: 480px;
+            bottom: -210px;
+            left: -140px;
+            background: rgba(215, 204, 200, 0.6);
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 18px;
+        }
+
+        /* ---------- Brand ---------- */
+        .brand {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+
+        .brand-logo {
+            width: 58px;
+            height: 58px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            background: #6f4e37;
+            border: 1px solid #4e342e;
+            box-shadow: 0 14px 30px rgba(78, 52, 46, 0.28), inset 0 1px 0 rgba(245, 240, 230, 0.35);
+        }
+
+        .brand-logo svg { width: 30px; height: 30px; stroke: #f5f0e6; }
+
+        .brand-title {
+            margin: 14px 0 4px;
+            font-size: 22px;
+            font-weight: 700;
+            color: #3e2723;
+            letter-spacing: 0;
+        }
+
+        .brand-subtitle {
+            margin: 0;
+            font-size: 13px;
+            color: #6f4e37;
+        }
+
+        /* ---------- Card ---------- */
+        .card {
+            width: 100%;
+            max-width: 430px;
+            background: #ffffff;
+            border: 1px solid #d7ccc8;
+            border-radius: 24px;
+            padding: 34px 30px 26px;
+            box-shadow: 0 26px 60px rgba(62, 39, 35, 0.16), 0 2px 6px rgba(62, 39, 35, 0.08);
+        }
+
+        .card-title {
+            margin: 0 0 6px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #3e2723;
+        }
+
+        .card-text {
+            margin: 0 0 22px;
+            font-size: 13px;
+            color: #6f4e37;
+        }
+
+        /* ---------- Alert ---------- */
+        .alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            margin-bottom: 18px;
+            padding: 11px 14px;
+            border-radius: 13px;
+            border: 1px solid #d7ccc8;
+            background: #fdfbf7;
+            color: #4e342e;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .alert svg {
+            width: 17px;
+            height: 17px;
+            flex: 0 0 auto;
+            margin-top: 3px;
+            stroke: currentColor;
+        }
+
+        /* ---------- Form ---------- */
+        .field { margin-bottom: 17px; }
+
+        .field-label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #3e2723;
+        }
+
+        .field-hint {
+            float: left;
+            font-size: 11px;
+            font-weight: 400;
+            color: rgba(62, 39, 35, 0.55);
+        }
+
+        .field input {
+            width: 100%;
+            padding: 13px 15px;
+            border: 1px solid #d7ccc8;
+            border-radius: 14px;
+            background: #fdfbf7;
+            color: #3e2723;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            outline: none;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        .field input::placeholder { color: rgba(62, 39, 35, 0.4); }
+
+        .field input:hover { border-color: #6f4e37; }
+
+        .field input:focus {
+            border-color: #6f4e37;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(111, 78, 55, 0.16);
+        }
+
+        .password-wrap { position: relative; }
+
+        .password-wrap input { padding-left: 46px; }
+
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            left: 8px;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            border: 0;
+            border-radius: 10px;
+            background: transparent;
+            color: #6f4e37;
             cursor: pointer;
+            transition: color 0.18s ease, background 0.18s ease;
+        }
+
+        .toggle-password:hover { color: #4e342e; background: #f5f0e6; }
+        .toggle-password:focus-visible { outline: 2px solid rgba(111, 78, 55, 0.5); outline-offset: 1px; }
+        .toggle-password svg { width: 19px; height: 19px; stroke: currentColor; }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            width: 100%;
+            margin-top: 22px;
+            padding: 14px 18px;
+            border: 1px solid #4e342e;
+            border-radius: 14px;
+            background: #6f4e37;
+            color: #f5f0e6;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 12px 24px rgba(111, 78, 55, 0.28);
+            transition: background 0.18s ease, transform 0.15s ease, box-shadow 0.2s ease;
+        }
+
+        .btn:hover { background: #4e342e; border-color: #3e2723; box-shadow: 0 16px 30px rgba(78, 52, 46, 0.34); }
+        .btn:active { transform: translateY(1px); }
+        .btn:focus-visible { outline: 3px solid rgba(111, 78, 55, 0.45); outline-offset: 2px; }
+        .btn:disabled { opacity: 0.72; cursor: not-allowed; box-shadow: none; }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid rgba(245, 240, 230, 0.45);
+            border-top-color: #f5f0e6;
+            animation: spin 0.75s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .card-note {
+            margin: 20px 0 0;
+            text-align: center;
+            font-size: 11.5px;
+            line-height: 1.9;
+            color: rgba(62, 39, 35, 0.55);
+        }
+
+        .footer-note {
+            margin: 22px 0 0;
+            font-size: 11.5px;
+            color: #6f4e37;
+        }
+
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+
+        @media (max-width: 420px) {
+            .card { padding: 26px 20px 22px; border-radius: 20px; }
+            .brand-logo { width: 52px; height: 52px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Login</h2>
-        <form action="/login" method="POST">
-            <label for="email">Email:</label><br>
-            <input type="email" id="email" name="email" required><br><br>
-            <label for="password">Password:</label><br>
-            <input type="password" id="password" name="password" required><br><br>
-            <button type="submit">Login</button>
-        </form>
+<div class="page">
+
+    <div class="brand">
+        <div class="brand-logo">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75 3.75 9v10.5a.75.75 0 0 0 .75.75h4.5V15a3 3 0 0 1 6 0v5.25h4.5a.75.75 0 0 0 .75-.75V9L12 3.75Z"/>
+            </svg>
+        </div>
+        <h1 class="brand-title">بومگردی</h1>
+        <p class="brand-subtitle">سامانه مدیریت اقامتگاه‌های بومگردی</p>
     </div>
+
+    <main class="card">
+        <h2 class="card-title">خوش آمدید</h2>
+        <p class="card-text">برای ادامه، اطلاعات حساب خود را وارد کنید.</p>
+
+        <div id="login-error" class="alert hidden" role="alert">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3h.008M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+            </svg>
+            <span id="login-error-text"></span>
+        </div>
+
+        <form id="login-form" novalidate>
+            <div class="field">
+                <label class="field-label" for="email">ایمیل</label>
+                <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autocomplete="username"
+                    required
+                    dir="ltr"
+                    placeholder="you@example.com"
+                >
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="password">
+                    رمز عبور
+                    <span class="field-hint">حداقل ۸ کاراکتر</span>
+                </label>
+                <div class="password-wrap">
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        autocomplete="current-password"
+                        required
+                        dir="ltr"
+                        placeholder="••••••••"
+                    >
+                    <button
+                        type="button"
+                        id="toggle-password"
+                        class="toggle-password"
+                        aria-label="نمایش یا مخفی کردن رمز عبور"
+                        aria-pressed="false"
+                    >
+                        <svg id="icon-eye" fill="none" viewBox="0 0 24 24" stroke-width="1.6" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178Z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                        </svg>
+                        <svg id="icon-eye-off" class="hidden" fill="none" viewBox="0 0 24 24" stroke-width="1.6" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.584 10.587a2.25 2.25 0 0 0 3.182 3.182m2.147-2.147A11.95 11.95 0 0 1 21.964 12c-1.39 4.168-5.326 7.178-9.964 7.178a11.95 11.95 0 0 1-5.379-1.267m2.23-3.717A11.95 11.95 0 0 1 2.036 12C3.423 7.832 7.36 4.822 12 4.822c.748 0 1.478.078 2.183.225"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <button id="login-button" class="btn" type="submit">
+                <span id="login-spinner" class="spinner hidden" aria-hidden="true"></span>
+                <span id="login-button-text">ورود به حساب</span>
+            </button>
+        </form>
+
+        <p class="card-note">
+            با ورود، قوانین استفاده و سیاست حفظ حریم خصوصی سامانه را می‌پذیرید.
+        </p>
+    </main>
+
+    <p class="footer-note">© ۱۴۰۵ بومگردی — تمامی حقوق محفوظ است.</p>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    const STORAGE_KEY = 'access_token';
+    const USER_KEY = 'current_user';
+    const form = document.getElementById('login-form');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const button = document.getElementById('login-button');
+    const buttonText = document.getElementById('login-button-text');
+    const spinner = document.getElementById('login-spinner');
+    const errorBox = document.getElementById('login-error');
+    const errorText = document.getElementById('login-error-text');
+    const toggleButton = document.getElementById('toggle-password');
+    const iconEye = document.getElementById('icon-eye');
+    const iconEyeOff = document.getElementById('icon-eye-off');
+
+    function decodeToken(token) {
+        try {
+            const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+            const padded = base64.padEnd(base64.length + (4 - (base64.length % 4)) % 4, '=');
+            const bytes = atob(padded).split('').map(function (char) {
+                return '%' + ('00' + char.charCodeAt(0).toString(16)).slice(-2);
+            }).join('');
+            return JSON.parse(decodeURIComponent(bytes));
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function isTokenFresh(token) {
+        const payload = decodeToken(token);
+        return Boolean(payload && payload.exp && payload.exp * 1000 > Date.now());
+    }
+
+    // Already signed in? Go straight to the right dashboard.
+    const storedToken = localStorage.getItem(STORAGE_KEY);
+    if (storedToken && isTokenFresh(storedToken)) {
+        const payload = decodeToken(storedToken);
+        window.location.replace(payload.role === 'admin' ? '/admin' : '/profile');
+        return;
+    }
+
+    function showError(message) {
+        errorText.textContent = message;
+        errorBox.classList.remove('hidden');
+        errorBox.classList.add('flex');
+    }
+
+    function clearError() {
+        errorBox.classList.add('hidden');
+        errorBox.classList.remove('flex');
+        errorText.textContent = '';
+    }
+
+    function setLoading(isLoading) {
+        button.disabled = isLoading;
+        spinner.classList.toggle('hidden', !isLoading);
+        buttonText.textContent = isLoading ? 'در حال بررسی…' : 'ورود به حساب';
+    }
+
+    toggleButton.addEventListener('click', function () {
+        const isHidden = passwordInput.type === 'password';
+        passwordInput.type = isHidden ? 'text' : 'password';
+        iconEye.classList.toggle('hidden', isHidden);
+        iconEyeOff.classList.toggle('hidden', !isHidden);
+        toggleButton.setAttribute('aria-pressed', String(isHidden));
+        passwordInput.focus();
+    });
+
+    [emailInput, passwordInput].forEach(function (input) {
+        input.addEventListener('input', clearError);
+    });
+
+    form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        clearError();
+
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        if (!email || !password) {
+            showError('ایمیل و رمز عبور را کامل وارد کنید.');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await fetch('/api/v1/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, password: password })
+            });
+
+            const payload = await response.json().catch(function () { return {}; });
+
+            if (!response.ok) {
+                showError(typeof payload.detail === 'string' ? payload.detail : 'ورود ناموفق بود. دوباره تلاش کنید.');
+                return;
+            }
+
+            localStorage.setItem(STORAGE_KEY, payload.access_token);
+            localStorage.setItem('token_type', payload.token_type || 'bearer');
+            localStorage.setItem(USER_KEY, JSON.stringify(payload.user || {}));
+
+            const claims = decodeToken(payload.access_token) || {};
+            const role = (payload.user && payload.user.role) || claims.role;
+            window.location.href = role === 'admin' ? '/admin' : '/profile';
+        } catch (error) {
+            showError('ارتباط با سرور برقرار نشد. اتصال شبکه را بررسی کنید.');
+        } finally {
+            setLoading(false);
+        }
+    });
+})();
+</script>
 </body>
 </html>
