@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جزئیات اقامتگاه | بومگردی</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #f5f0e6;
+            color: #3e2723;
+            font-family: "Vazirmatn", "IRANSans", "Segoe UI", Tahoma, Arial, sans-serif;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a { color: inherit; text-decoration: none; }
+        button, select, input { font-family: inherit; }
+        svg { display: block; }
+        p, h1, h2, h3 { margin: 0; }
+
+        .hidden { display: none !important; }
+
+        .wrap { width: 100%; max-width: 1080px; margin: 0 auto; padding: 0 18px; }
+
+        /* ================= Header ================= */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            border-bottom: 1px solid #d7ccc8;
+            background: rgba(253, 251, 247, 0.94);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            height: 66px;
+        }
+
+        .brand { display: flex; align-items: center; gap: 11px; }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: #6f4e37;
+            border: 1px solid #4e342e;
+            box-shadow: 0 8px 18px rgba(78, 52, 46, 0.28);
+        }
+
+        .brand-logo svg { width: 20px; height: 20px; stroke: #f5f0e6; fill: none; }
+        .brand-name { display: block; font-size: 14px; font-weight: 700; color: #3e2723; }
+        .brand-note { display: block; font-size: 11px; color: #6f4e37; margin-top: 2px; }
+
+        .header-nav { display: flex; align-items: center; gap: 8px; }
+
+        .ghost-link {
+            display: none;
+            padding: 9px 14px;
+            border-radius: 11px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #6f4e37;
+            transition: background 0.18s ease, color 0.18s ease;
+        }
+
+        .ghost-link:hover { background: #f5f0e6; color: #3e2723; }
+
+        .solid-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 16px;
+            border: 1px solid #d7ccc8;
+            border-radius: 12px;
+            background: #6f4e37;
+            color: #f5f0e6;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 6px 14px rgba(111, 78, 55, 0.22);
+            transition: background 0.18s ease, border-color 0.18s ease;
+        }
+
+        .solid-link:hover { background: #4e342e; border-color: #3e2723; }
+
+        /* ================= Layout ================= */
+        .content { padding: 22px 18px 42px; }
+
+        .crumb { font-size: 12px; color: #6f4e37; margin-bottom: 16px; }
+        .crumb a:hover { color: #3e2723; }
+
+        .hero-card {
+            background: #ffffff;
+            border: 1px solid #d7ccc8;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(62, 39, 35, 0.06);
+            margin-bottom: 18px;
+        }
+
+        .hero-media {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 132px;
+            background: linear-gradient(135deg, #6f4e37, #4e342e 55%, #3e2723);
+        }
+
+        .hero-media svg { width: 46px; height: 46px; stroke: #f5f0e6; fill: none; opacity: 0.92; }
+
+        .hero-text { padding: 20px; }
+
+        .listing-title { font-size: 22px; font-weight: 700; line-height: 1.6; color: #3e2723; }
+
+        .listing-city {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            padding: 4px 11px;
+            border-radius: 999px;
+            border: 1px solid #d7ccc8;
+            background: #f5f0e6;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6f4e37;
+        }
+
+        .listing-city svg { width: 13px; height: 13px; stroke: #6f4e37; fill: none; }
+
+        .listing-address { margin-top: 12px; font-size: 13px; color: #6f4e37; }
+        .listing-description { margin-top: 10px; font-size: 13px; line-height: 2; color: rgba(62, 39, 35, 0.78); }
+
+        .grid { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid #d7ccc8;
+            border-radius: 20px;
+            box-shadow: 0 1px 2px rgba(62, 39, 35, 0.06);
+            overflow: hidden;
+        }
+
+        .card-head { padding: 16px 20px; border-bottom: 1px solid #d7ccc8; }
+        .card-title { font-size: 15px; font-weight: 700; color: #3e2723; }
+        .card-sub { margin-top: 4px; font-size: 12px; color: #6f4e37; }
+        .card-body { padding: 20px; }
+
+        /* ================= Rooms ================= */
+        .room-list { display: block; }
+
+        .room-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(215, 204, 200, 0.65);
+        }
+
+        .room-row:last-child { border-bottom: 0; }
+        .room-name { font-size: 14px; font-weight: 700; color: #3e2723; }
+        .room-meta { margin-top: 4px; font-size: 12px; color: #6f4e37; }
+
+        .room-price {
+            padding: 5px 12px;
+            border-radius: 999px;
+            border: 1px solid #d7ccc8;
+            background: #fdfbf7;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #4e342e;
+            white-space: nowrap;
+        }
+
+        .room-empty { padding: 24px 20px; text-align: center; font-size: 13px; color: #6f4e37; }
+
+        /* ================= Form ================= */
+        .field { display: block; margin-bottom: 14px; }
+        .field:last-of-type { margin-bottom: 0; }
+
+        .field-label { display: block; margin-bottom: 7px; font-size: 13px; font-weight: 600; color: #3e2723; }
+
+        .field select,
+        .field input {
+            width: 100%;
+            padding: 11px 13px;
+            border: 1px solid #d7ccc8;
+            border-radius: 12px;
+            background: #fdfbf7;
+            color: #3e2723;
+            font-size: 13.5px;
+            outline: none;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        .field select:focus,
+        .field input:focus {
+            border-color: #6f4e37;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(111, 78, 55, 0.16);
+        }
+
+        .field-row { display: grid; grid-template-columns: 1fr; gap: 12px; }
+
+        .stay-summary {
+            margin-top: 14px;
+            padding: 10px 13px;
+            border-radius: 12px;
+            border: 1px solid #d7ccc8;
+            background: #f5f0e6;
+            font-size: 12.5px;
+            line-height: 1.9;
+            color: #4e342e;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            width: 100%;
+            margin-top: 18px;
+            padding: 13px 20px;
+            border: 1px solid #4e342e;
+            border-radius: 13px;
+            background: #6f4e37;
+            color: #f5f0e6;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 22px rgba(111, 78, 55, 0.24);
+            transition: background 0.18s ease, box-shadow 0.2s ease;
+        }
+
+        .btn:hover { background: #4e342e; box-shadow: 0 14px 28px rgba(78, 52, 46, 0.3); }
+        .btn:focus-visible { outline: 3px solid rgba(111, 78, 55, 0.4); outline-offset: 2px; }
+        .btn:disabled { opacity: 0.7; cursor: not-allowed; box-shadow: none; }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid rgba(245, 240, 230, 0.45);
+            border-top-color: #f5f0e6;
+            animation: spin 0.75s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .note { margin-top: 12px; font-size: 11.5px; line-height: 1.9; color: rgba(62, 39, 35, 0.55); }
+
+        .alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            margin-bottom: 16px;
+            padding: 11px 14px;
+            border-radius: 13px;
+            border: 1px solid #d7ccc8;
+            background: #fdfbf7;
+            color: #4e342e;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .alert svg { width: 17px; height: 17px; flex: 0 0 auto; margin-top: 3px; stroke: currentColor; fill: none; }
+        .alert a { color: #6f4e37; font-weight: 700; text-decoration: underline; }
+
+        /* ================= Success / states ================= */
+        .rows { display: block; }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 13px 20px;
+            border-bottom: 1px solid rgba(215, 204, 200, 0.65);
+            font-size: 13px;
+        }
+
+        .row:last-child { border-bottom: 0; }
+        .row dt { color: #6f4e37; }
+        .row dd { margin: 0; font-weight: 600; color: #3e2723; }
+        .row dd.mono { font-size: 11.5px; font-weight: 500; color: rgba(62, 39, 35, 0.6); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 11.5px;
+            font-weight: 600;
+            background: #f5f0e6;
+            border: 1px solid #d7ccc8;
+            color: #4e342e;
+        }
+
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: #6f4e37; }
+
+        .success-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+        .success-actions { padding: 16px 20px; }
+
+        .state {
+            padding: 44px 22px;
+            text-align: center;
+            background: #ffffff;
+            border: 1px solid #d7ccc8;
+            border-radius: 20px;
+            box-shadow: 0 1px 2px rgba(62, 39, 35, 0.06);
+        }
+
+        .state-title { font-size: 14px; font-weight: 700; color: #3e2723; }
+        .state-text { margin-top: 6px; font-size: 13px; line-height: 1.9; color: #6f4e37; }
+        .state-text a { color: #6f4e37; font-weight: 700; text-decoration: underline; }
+
+        .site-footer {
+            padding: 22px 18px 34px;
+            border-top: 1px solid #d7ccc8;
+            background: #fdfbf7;
+            text-align: center;
+            font-size: 12px;
+            color: #6f4e37;
+        }
+
+        @media (min-width: 640px) {
+            .ghost-link { display: inline-flex; }
+            .field-row { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (min-width: 900px) {
+            .grid { grid-template-columns: 1.15fr 0.85fr; }
+            .hero-media { height: 160px; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="site-header">
+    <div class="wrap header-inner">
+        <a class="brand" href="/">
+            <span class="brand-logo">
+                <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75 3.75 9v10.5a.75.75 0 0 0 .75.75h4.5V15a3 3 0 0 1 6 0v5.25h4.5a.75.75 0 0 0 .75-.75V9L12 3.75Z"/>
+                </svg>
+            </span>
+            <span>
+                <span class="brand-name">بومگردی</span>
+                <span class="brand-note">اقامتگاه‌های بومی ایران</span>
+            </span>
+        </a>
+
+        <nav class="header-nav">
+            <a class="ghost-link" href="/">صفحه اصلی</a>
+            <a id="account-link" class="solid-link" href="/login">ورود / ثبت‌نام</a>
+        </nav>
+    </div>
+</header>
+
+<main class="wrap content">
+    <p class="crumb"><a href="/">صفحه اصلی</a> / جزئیات اقامتگاه</p>
+
+    <div id="page-loading" class="state">
+        <p class="state-title">در حال بارگذاری اقامتگاه…</p>
+    </div>
+
+    <div id="page-error" class="state hidden">
+        <p class="state-title">این اقامتگاه در دسترس نیست</p>
+        <p class="state-text">ممکن است منتشر نشده باشد یا نشانی آن تغییر کرده باشد. <a href="/">بازگشت به صفحه اصلی</a></p>
+    </div>
+
+    <div id="page-body" class="hidden">
+        <section class="hero-card">
+            <div class="hero-media" aria-hidden="true">
+                <svg fill="none" viewBox="0 0 24 24" stroke-width="1.3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 19.5 6.75-9 4.5 6 2.25-3 6 6M2.25 19.5h19.5"/>
+                </svg>
+            </div>
+            <div class="hero-text">
+                <h1 id="listing-title" class="listing-title">—</h1>
+                <p class="listing-city">
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/>
+                    </svg>
+                    <span id="listing-city">—</span>
+                </p>
+                <p id="listing-address" class="listing-address">—</p>
+                <p id="listing-description" class="listing-description"></p>
+            </div>
+        </section>
+
+        <div class="grid">
+            <section class="card">
+                <div class="card-head">
+                    <h2 class="card-title">اتاق‌ها و قیمت‌ها</h2>
+                    <p id="rooms-caption" class="card-sub">در حال دریافت اتاق‌ها…</p>
+                </div>
+                <div id="rooms-body" class="room-list">
+                    <p class="room-empty">در حال بارگذاری…</p>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-head">
+                    <h2 class="card-title">رزرو اقامتگاه</h2>
+                    <p class="card-sub">اتاق و تاریخ‌های اقامت را انتخاب کنید.</p>
+                </div>
+
+                <div class="card-body">
+                    <div id="booking-error" class="alert hidden" role="alert">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3h.008M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                        </svg>
+                        <span id="booking-error-text"></span>
+                    </div>
+
+                    <form id="booking-form" novalidate>
+                        <div class="field">
+                            <label class="field-label" for="room-select">اتاق</label>
+                            <select id="room-select"></select>
+                        </div>
+
+                        <div class="field-row">
+                            <div class="field">
+                                <label class="field-label" for="check-in">تاریخ ورود</label>
+                                <input id="check-in" type="date">
+                            </div>
+                            <div class="field">
+                                <label class="field-label" for="check-out">تاریخ خروج</label>
+                                <input id="check-out" type="date">
+                            </div>
+                        </div>
+
+                        <p id="stay-summary" class="stay-summary hidden"></p>
+
+                        <button id="booking-submit" class="btn" type="submit">
+                            <span id="booking-spinner" class="spinner hidden" aria-hidden="true"></span>
+                            <span id="booking-submit-text">ثبت رزرو</span>
+                        </button>
+                        <p class="note">رزرو پس از تأیید میزبان قطعی می‌شود.</p>
+                    </form>
+                </div>
+            </section>
+        </div>
+
+        <section id="booking-success" class="card hidden" aria-live="polite">
+            <div class="card-head success-head">
+                <h2 class="card-title">رزرو شما ثبت شد</h2>
+                <span class="chip"><span class="dot"></span><span id="success-status">در انتظار تأیید</span></span>
+            </div>
+            <dl class="rows">
+                <div class="row">
+                    <dt>اتاق</dt>
+                    <dd id="success-room">—</dd>
+                </div>
+                <div class="row">
+                    <dt>تاریخ ورود</dt>
+                    <dd id="success-check-in">—</dd>
+                </div>
+                <div class="row">
+                    <dt>تاریخ خروج</dt>
+                    <dd id="success-check-out">—</dd>
+                </div>
+                <div class="row">
+                    <dt>شناسه رزرو</dt>
+                    <dd id="success-id" class="mono" dir="ltr">—</dd>
+                </div>
+            </dl>
+            <div class="success-actions">
+                <button id="book-again" class="btn" type="button">رزرو دیگر</button>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer class="site-footer">بومگردی — اقامت در دل طبیعت ایران © ۱۴۰۵</footer>
+
+<script>
+(function () {
+    'use strict';
+
+    const TOKEN_KEY = 'access_token';
+    const USER_KEY = 'current_user';
+    const BOOKING_STATUS_LABELS = {
+        pending: 'در انتظار تأیید',
+        confirmed: 'تأییدشده',
+        cancelled: 'لغوشده'
+    };
+
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) {
+        document.getElementById('account-link').setAttribute('href', '/profile');
+        document.getElementById('account-link').textContent = 'حساب من';
+    }
+
+    const listingId = window.location.pathname.split('/').filter(Boolean).pop();
+
+    const pageLoading = document.getElementById('page-loading');
+    const pageError = document.getElementById('page-error');
+    const pageBody = document.getElementById('page-body');
+    const roomsBody = document.getElementById('rooms-body');
+    const roomsCaption = document.getElementById('rooms-caption');
+    const roomSelect = document.getElementById('room-select');
+    const checkInInput = document.getElementById('check-in');
+    const checkOutInput = document.getElementById('check-out');
+    const staySummary = document.getElementById('stay-summary');
+    const form = document.getElementById('booking-form');
+    const submitButton = document.getElementById('booking-submit');
+    const submitText = document.getElementById('booking-submit-text');
+    const submitSpinner = document.getElementById('booking-spinner');
+    const errorBox = document.getElementById('booking-error');
+    const errorText = document.getElementById('booking-error-text');
+    const successCard = document.getElementById('booking-success');
+
+    let rooms = [];
+
+    function escapeHtml(value) {
+        return String(value === null || value === undefined ? '' : value).replace(/[&<>"']/g, function (char) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+        });
+    }
+
+    function formatPrice(value) {
+        const number = Number(value);
+        if (!isFinite(number)) { return '—'; }
+        return number.toLocaleString('fa-IR') + ' تومان';
+    }
+
+    // Stay dates are calendar dates; format them in UTC so the day never shifts.
+    function formatStay(value) {
+        if (!value) { return '—'; }
+        const date = new Date(value + 'T00:00:00Z');
+        if (isNaN(date.getTime())) { return '—'; }
+        return new Intl.DateTimeFormat('fa-IR', {
+            dateStyle: 'medium', timeZone: 'UTC'
+        }).format(date);
+    }
+
+    function todayIso() {
+        return new Date().toISOString().slice(0, 10);
+    }
+
+    function makeIdempotencyKey() {
+        if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+            return window.crypto.randomUUID();
+        }
+        return 'booking-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+    }
+
+    function readError(payload) {
+        if (!payload) { return ''; }
+        const detail = payload.detail;
+        if (typeof detail === 'string') { return detail; }
+        if (Array.isArray(detail)) {
+            return detail.map(function (item) {
+                return item && item.msg ? item.msg : 'مقدار وارد شده معتبر نیست';
+            }).join(' · ');
+        }
+        return '';
+    }
+
+    function showError(message, withLoginLink) {
+        errorText.innerHTML = escapeHtml(message)
+            + (withLoginLink ? ' <a href="/login">ورود به حساب</a>' : '');
+        errorBox.classList.remove('hidden');
+    }
+
+    function hideError() {
+        errorBox.classList.add('hidden');
+        errorText.textContent = '';
+    }
+
+    function setLoading(isLoading) {
+        submitButton.disabled = isLoading;
+        submitSpinner.classList.toggle('hidden', !isLoading);
+        submitText.textContent = isLoading ? 'در حال ثبت…' : 'ثبت رزرو';
+    }
+
+    function renderRooms(list) {
+        roomsCaption.textContent = list.length
+            ? list.length.toLocaleString('fa-IR') + ' اتاق قابل رزرو'
+            : 'اتاقی ثبت نشده است';
+
+        if (!list.length) {
+            roomsBody.innerHTML = '<p class="room-empty">این اقامتگاه هنوز اتاقی برای رزرو ندارد.</p>';
+            roomSelect.innerHTML = '<option value="">اتاقی موجود نیست</option>';
+            roomSelect.disabled = true;
+            submitButton.disabled = true;
+            return;
+        }
+
+        roomsBody.innerHTML = list.map(function (room) {
+            return '<div class="room-row">'
+                + '<div>'
+                + '<p class="room-name">' + escapeHtml(room.name) + '</p>'
+                + '<p class="room-meta">ظرفیت ' + escapeHtml(Number(room.capacity).toLocaleString('fa-IR')) + ' نفر</p>'
+                + '</div>'
+                + '<span class="room-price">' + escapeHtml(formatPrice(room.price_per_night)) + ' / شب</span>'
+                + '</div>';
+        }).join('');
+
+        roomSelect.innerHTML = list.map(function (room) {
+            return '<option value="' + escapeHtml(room.id) + '">'
+                + escapeHtml(room.name) + ' · ظرفیت ' + escapeHtml(Number(room.capacity).toLocaleString('fa-IR'))
+                + ' · ' + escapeHtml(formatPrice(room.price_per_night)) + ' هر شب'
+                + '</option>';
+        }).join('');
+    }
+
+    function selectedRoom() {
+        const id = roomSelect.value;
+        return rooms.filter(function (room) { return String(room.id) === String(id); })[0] || null;
+    }
+
+    function updateStaySummary() {
+        const room = selectedRoom();
+        const checkIn = checkInInput.value;
+        const checkOut = checkOutInput.value;
+
+        if (!room || !checkIn || !checkOut) {
+            staySummary.classList.add('hidden');
+            return;
+        }
+
+        const nights = Math.round(
+            (new Date(checkOut + 'T00:00:00Z') - new Date(checkIn + 'T00:00:00Z')) / 86400000
+        );
+
+        if (!isFinite(nights) || nights <= 0) {
+            staySummary.textContent = 'تاریخ خروج باید بعد از تاریخ ورود باشد.';
+            staySummary.classList.remove('hidden');
+            return;
+        }
+
+        staySummary.textContent = nights.toLocaleString('fa-IR') + ' شب اقامت · مجموع '
+            + formatPrice(Number(room.price_per_night) * nights);
+        staySummary.classList.remove('hidden');
+    }
+
+    async function loadListing() {
+        try {
+            const response = await fetch('/api/v1/listings/' + encodeURIComponent(listingId), {
+                headers: { Accept: 'application/json' }
+            });
+
+            if (!response.ok) {
+                pageLoading.classList.add('hidden');
+                pageError.classList.remove('hidden');
+                return;
+            }
+
+            const listing = await response.json();
+            document.title = (listing.title || 'اقامتگاه') + ' | بومگردی';
+            document.getElementById('listing-title').textContent = listing.title || '—';
+            document.getElementById('listing-city').textContent = listing.city || '—';
+            document.getElementById('listing-address').textContent = listing.address || '—';
+            const description = document.getElementById('listing-description');
+            description.textContent = listing.description || '';
+
+            rooms = Array.isArray(listing.rooms) ? listing.rooms : [];
+            renderRooms(rooms);
+
+            checkInInput.min = todayIso();
+            checkOutInput.min = todayIso();
+
+            pageLoading.classList.add('hidden');
+            pageBody.classList.remove('hidden');
+        } catch (error) {
+            pageLoading.classList.add('hidden');
+            pageError.classList.remove('hidden');
+        }
+    }
+
+    [checkInInput, checkOutInput, roomSelect].forEach(function (element) {
+        element.addEventListener('change', updateStaySummary);
+    });
+
+    form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        hideError();
+
+        if (!token) {
+            showError('برای ثبت رزرو باید وارد حساب خود شوید.', true);
+            return;
+        }
+
+        const roomId = roomSelect.value;
+        const checkIn = checkInInput.value;
+        const checkOut = checkOutInput.value;
+
+        if (!roomId) {
+            showError('برای این اقامتگاه اتاقی قابل رزرو وجود ندارد.');
+            return;
+        }
+        if (!checkIn || !checkOut) {
+            showError('تاریخ ورود و خروج را انتخاب کنید.');
+            return;
+        }
+        if (checkOut <= checkIn) {
+            showError('تاریخ خروج باید بعد از تاریخ ورود باشد.');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await fetch('/api/v1/bookings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'Idempotency-Key': makeIdempotencyKey()
+                },
+                body: JSON.stringify({ room_id: roomId, check_in: checkIn, check_out: checkOut })
+            });
+
+            const payload = await response.json().catch(function () { return null; });
+
+            if (response.status === 401) {
+                showError('نشست شما منقضی شده است؛ دوباره وارد شوید.', true);
+                return;
+            }
+            if (!response.ok) {
+                showError(readError(payload) || 'ثبت رزرو انجام نشد. دوباره تلاش کنید.');
+                return;
+            }
+
+            const room = selectedRoom();
+            document.getElementById('success-room').textContent = room ? room.name : '—';
+            document.getElementById('success-check-in').textContent = formatStay(payload.check_in);
+            document.getElementById('success-check-out').textContent = formatStay(payload.check_out);
+            document.getElementById('success-id').textContent = payload.id || '—';
+            document.getElementById('success-status').textContent =
+                BOOKING_STATUS_LABELS[payload.status] || payload.status || '—';
+
+            successCard.classList.remove('hidden');
+            successCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            form.reset();
+            staySummary.classList.add('hidden');
+        } catch (error) {
+            showError('ارتباط با سرور برقرار نشد. اتصال خود را بررسی کنید.');
+        } finally {
+            setLoading(false);
+        }
+    });
+
+    document.getElementById('book-again').addEventListener('click', function () {
+        successCard.classList.add('hidden');
+        hideError();
+        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    loadListing();
+})();
+</script>
+</body>
+</html>

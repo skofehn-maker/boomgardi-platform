@@ -63,6 +63,9 @@ class Room(Base):
     """A bookable room inside a listing."""
 
     __tablename__ = "rooms"
+    __table_args__ = (
+        UniqueConstraint("listing_id", "idempotency_key", name="uq_rooms_listing_idempotency"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     listing_id: Mapped[uuid.UUID] = mapped_column(
@@ -71,6 +74,9 @@ class Room(Base):
     name: Mapped[str] = mapped_column(String(150))
     capacity: Mapped[int] = mapped_column(Integer)
     price_per_night: Mapped[float] = mapped_column(Float)
+
+    # Iron Rule 4: a replayed create returns the original room (ADR 0002 pattern).
+    idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
     listing: Mapped[Listing] = relationship(back_populates="rooms", lazy="selectin")
 

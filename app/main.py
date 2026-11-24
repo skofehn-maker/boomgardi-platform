@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.api.v1.auth import router as auth_router
+from app.api.v1.bookings import router as bookings_router
 from app.api.v1.listings import router as listings_router
 from app.api.v1.users import router as users_router
 
@@ -16,6 +17,7 @@ templates = Jinja2Templates(directory="app/templates")
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(users_router, prefix="/api/v1/users", tags=["users"])
 app.include_router(listings_router, prefix="/api/v1/listings", tags=["listings"])
+app.include_router(bookings_router, prefix="/api/v1/bookings", tags=["bookings"])
 
 
 @app.get("/health")
@@ -46,3 +48,8 @@ async def profile_page(request: Request):
 @app.get("/host", include_in_schema=False)
 async def host_page(request: Request):
     return templates.TemplateResponse(request=request, name="host_dashboard.html")
+
+
+@app.get("/listings/{listing_id}", include_in_schema=False)
+async def listing_detail_page(request: Request, listing_id: str):
+    return templates.TemplateResponse(request=request, name="listing_detail.html")

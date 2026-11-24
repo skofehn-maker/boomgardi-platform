@@ -307,6 +307,36 @@
             50% { opacity: 0.45; }
         }
 
+        .listing-rooms { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+        .room-chip {
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid #d7ccc8;
+            background: #fdfbf7;
+            font-size: 11.5px;
+            color: #4e342e;
+        }
+
+        .room-empty { font-size: 11.5px; color: rgba(62, 39, 35, 0.5); }
+
+        .room-btn {
+            padding: 7px 12px;
+            border: 1px solid #6f4e37;
+            border-radius: 10px;
+            background: #fdfbf7;
+            color: #6f4e37;
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.18s ease, color 0.18s ease;
+        }
+
+        .room-btn:hover { background: #6f4e37; color: #f5f0e6; }
+
+        .room-form-card { margin-top: 18px; }
+
         /* ================= Result ================= */
         .result { margin-top: 18px; overflow: hidden; }
 
@@ -426,6 +456,54 @@
         <div id="my-listings-body" class="listing-list" aria-live="polite">
             <div class="list-skeleton" style="width: 62%;"></div>
             <div class="list-skeleton" style="width: 40%;"></div>
+        </div>
+    </section>
+
+    <section id="room-form-card" class="card room-form-card hidden">
+        <div class="card-head">
+            <h2 class="card-title">اتاق جدید</h2>
+            <p id="room-form-sub" class="card-sub">—</p>
+        </div>
+
+        <div class="card-body">
+            <div id="room-error" class="alert hidden" role="alert">
+                <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3h.008M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <span id="room-error-text"></span>
+            </div>
+
+            <form id="room-form" novalidate>
+                <input id="room-listing-id" type="hidden" value="">
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label class="field-label" for="room-name">نام اتاق</label>
+                        <input id="room-name" name="room-name" type="text" maxlength="150" required
+                               placeholder="مثلاً اتاق گل‌سرخ">
+                    </div>
+
+                    <div class="field">
+                        <label class="field-label" for="room-capacity">ظرفیت (نفر)</label>
+                        <input id="room-capacity" name="room-capacity" type="number" min="1" max="50"
+                               value="2" required>
+                    </div>
+
+                    <div class="field span-2">
+                        <label class="field-label" for="room-price">قیمت هر شب (تومان)</label>
+                        <input id="room-price" name="room-price" type="number" min="1000" step="1000" required
+                               placeholder="مثلاً ۱۴۵۰۰۰۰">
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button id="room-submit" class="btn" type="submit">
+                        <span id="room-spinner" class="spinner hidden" aria-hidden="true"></span>
+                        <span id="room-submit-text">افزودن اتاق</span>
+                    </button>
+                    <button id="room-cancel" class="mini-btn" type="button">انصراف</button>
+                </div>
+            </form>
         </div>
     </section>
 
@@ -722,6 +800,19 @@
         return '<span class="chip"><span class="dot"></span>' + escapeHtml(label) + '</span>';
     }
 
+    function roomChips(list) {
+        if (!Array.isArray(list) || list.length === 0) {
+            return '<span class="room-empty">بدون اتاق — هنوز اتاقی اضافه نکرده‌اید.</span>';
+        }
+
+        return list.map(function (room) {
+            return '<span class="room-chip">'
+                + escapeHtml(room.name) + ' · ' + escapeHtml(Number(room.capacity).toLocaleString('fa-IR')) + ' نفر · '
+                + escapeHtml(Number(room.price_per_night).toLocaleString('fa-IR')) + ' تومان'
+                + '</span>';
+        }).join('');
+    }
+
     function listingRow(listing) {
         const canPublish = listing.status === 'draft';
 
@@ -735,9 +826,12 @@
             + '</svg>'
             + escapeHtml(listing.city) + ' · ' + escapeHtml(formatDate(listing.created_at))
             + '</p>'
+            + '<div class="listing-rooms">' + roomChips(listing.rooms) + '</div>'
             + '</div>'
             + '<div class="listing-actions">'
             + statusChip(listing.status)
+            + '<button class="room-btn" type="button" data-id="' + escapeHtml(listing.id)
+            + '" data-title="' + escapeHtml(listing.title) + '">افزودن اتاق</button>'
             + (canPublish
                 ? '<button class="publish-btn" type="button" data-id="' + escapeHtml(listing.id) + '">انتشار</button>'
                 : '')
@@ -832,13 +926,122 @@
     }
 
     myListingsBody.addEventListener('click', function (event) {
-        const button = event.target.closest('.publish-btn');
-        if (button) {
-            publishListing(button);
+        const publishButton = event.target.closest('.publish-btn');
+        if (publishButton) {
+            publishListing(publishButton);
+            return;
+        }
+
+        const roomButton = event.target.closest('.room-btn');
+        if (roomButton) {
+            openRoomForm(roomButton.getAttribute('data-id'), roomButton.getAttribute('data-title'));
         }
     });
 
     myListingsRefresh.addEventListener('click', loadMyListings);
+
+    // --- Add room ---------------------------------------------------------
+    const roomFormCard = document.getElementById('room-form-card');
+    const roomFormElement = document.getElementById('room-form');
+    const roomListingId = document.getElementById('room-listing-id');
+    const roomFormSub = document.getElementById('room-form-sub');
+    const roomNameInput = document.getElementById('room-name');
+    const roomCapacityInput = document.getElementById('room-capacity');
+    const roomPriceInput = document.getElementById('room-price');
+    const roomSubmit = document.getElementById('room-submit');
+    const roomSubmitText = document.getElementById('room-submit-text');
+    const roomSpinner = document.getElementById('room-spinner');
+    const roomCancel = document.getElementById('room-cancel');
+    const roomError = document.getElementById('room-error');
+    const roomErrorText = document.getElementById('room-error-text');
+
+    function showRoomError(message) {
+        roomErrorText.textContent = message;
+        roomError.classList.remove('hidden');
+    }
+
+    function setRoomLoading(isLoading) {
+        roomSubmit.disabled = isLoading;
+        roomSpinner.classList.toggle('hidden', !isLoading);
+        roomSubmitText.textContent = isLoading ? 'در حال ثبت…' : 'افزودن اتاق';
+    }
+
+    function openRoomForm(listingId, listingTitle) {
+        roomListingId.value = listingId;
+        roomFormSub.textContent = 'برای «' + listingTitle + '»';
+        roomError.classList.add('hidden');
+        roomErrorText.textContent = '';
+        roomFormCard.classList.remove('hidden');
+        roomFormCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        roomNameInput.focus();
+    }
+
+    roomCancel.addEventListener('click', function () {
+        roomFormCard.classList.add('hidden');
+        roomFormElement.reset();
+    });
+
+    roomFormElement.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        roomError.classList.add('hidden');
+
+        const listingId = roomListingId.value;
+        const name = roomNameInput.value.trim();
+        const capacity = Number(roomCapacityInput.value);
+        const price = Number(roomPriceInput.value);
+
+        if (!listingId) {
+            showRoomError('ابتدا اقامتگاه مورد نظر را انتخاب کنید.');
+            return;
+        }
+        if (!name) {
+            showRoomError('نام اتاق را وارد کنید.');
+            return;
+        }
+        if (!isFinite(capacity) || capacity < 1) {
+            showRoomError('ظرفیت باید دست‌کم ۱ نفر باشد.');
+            return;
+        }
+        if (!isFinite(price) || price <= 0) {
+            showRoomError('قیمت هر شب باید بزرگ‌تر از صفر باشد.');
+            return;
+        }
+
+        setRoomLoading(true);
+        try {
+            const response = await fetch(
+                '/api/v1/listings/' + encodeURIComponent(listingId) + '/rooms',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'Idempotency-Key': makeIdempotencyKey()
+                    },
+                    body: JSON.stringify({ name: name, capacity: capacity, price_per_night: price })
+                }
+            );
+
+            if (response.status === 401) {
+                logout();
+                return;
+            }
+
+            if (!response.ok) {
+                const payload = await response.json().catch(function () { return null; });
+                showRoomError(readError(payload) || 'افزودن اتاق انجام نشد. دوباره تلاش کنید.');
+                return;
+            }
+
+            roomFormElement.reset();
+            roomFormCard.classList.add('hidden');
+            await loadMyListings();
+        } catch (error) {
+            showRoomError('ارتباط با سرور برقرار نشد. اتصال خود را بررسی کنید.');
+        } finally {
+            setRoomLoading(false);
+        }
+    });
 
     document.getElementById('logout-button').addEventListener('click', logout);
 
