@@ -10,7 +10,7 @@ with Alembic. It is a no-op when the table is already there.
 """
 
 import sqlalchemy as sa
-from alembic import op
+from alembic import context, op
 
 revision = "0003_notifications"
 down_revision = "0002_booking_guard_and_relationships"
@@ -18,12 +18,7 @@ branch_labels = None
 depends_on = None
 
 
-def upgrade() -> None:
-    bind = op.get_bind()
-    if "notifications" in sa.inspect(bind).get_table_names():
-        print("alembic: notifications already exists; nothing to do.")
-        return
-
+def _create_notifications() -> None:
     op.create_table(
         "notifications",
         sa.Column("id", sa.Uuid(), nullable=False),
@@ -41,10 +36,33 @@ def upgrade() -> None:
     )
 
 
+def _drop_notifications() -> None:
+    op.drop_index("ix_notifications_user_is_read", table_name="notifications")
+    op.drop_table("notifications")
+
+
+def upgrade() -> None:
+    if context.is_offline_mode():
+        # ``alembic upgrade --sql`` has no connection to inspect, and must
+        # still render the DDL.
+        _create_notifications()
+        return
+
+    bind = op.get_bind()
+    if "notifications" in sa.inspect(bind).get_table_names():
+        print("alembic: notifications already exists; nothing to do.")
+        return
+
+    _create_notifications()
+
+
 def downgrade() -> None:
+    if context.is_offline_mode():
+        _drop_notifications()
+        return
+
     bind = op.get_bind()
     if "notifications" not in sa.inspect(bind).get_table_names():
         return
 
-    op.drop_index("ix_notifications_user_is_read", table_name="notifications")
-    op.drop_table("notifications")
+    _drop_notifications()
