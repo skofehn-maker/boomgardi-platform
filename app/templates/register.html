@@ -511,8 +511,9 @@
                 return;
             }
 
-            // No auto-login: send the new account to the sign-in page.
-            window.location.href = '/login?registered=1';
+            // No auto-login: confirm, then send the new account to the sign-in page.
+            alert('ثبت‌نام موفق');
+            window.location.href = '/login';
         } catch (error) {
             showError('ارتباط با سرور برقرار نشد. اتصال شبکه را بررسی کنید.');
         } finally {
