@@ -469,6 +469,35 @@
         .row-action svg { width: 15px; height: 15px; stroke: currentColor; fill: none; }
         .row-action:hover { background: #f5f0e6; color: #4e342e; }
 
+        .badge-pending { background: #fdfbf7; color: #6f4e37; border-color: #d7ccc8; }
+        .badge-confirmed { background: #4e342e; color: #f5f0e6; border-color: #3e2723; }
+        .badge-cancelled { background: #f5f0e6; color: #4e342e; border-color: #d7ccc8; }
+
+        .bookings-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+        .filter-wrap {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 11px;
+            border: 1px solid #d7ccc8;
+            border-radius: 12px;
+            background: #fdfbf7;
+            font-size: 12px;
+            color: #6f4e37;
+        }
+
+        .filter-select {
+            padding: 3px 2px;
+            border: 0;
+            background: transparent;
+            color: #3e2723;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            outline: none;
+        }
+
         .panel-foot { padding: 11px 18px; border-top: 1px solid #d7ccc8; font-size: 12px; color: rgba(62, 39, 35, 0.6); }
 
         /* ================= States ================= */
@@ -566,7 +595,7 @@
             اقامتگاه‌ها
         </a>
 
-        <a href="#" class="nav-link disabled" title="به‌زودی" aria-disabled="true">
+        <a href="#bookings" class="nav-link" data-view="bookings">
             <svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>
             </svg>
@@ -830,6 +859,79 @@
 
             <div class="panel-foot">
                 <p id="listings-footer">—</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Bookings view -->
+    <div id="view-bookings" class="hidden">
+        <div class="page-head">
+            <div>
+                <h2 class="page-title">مدیریت رزروها</h2>
+                <p id="bookings-caption" class="page-subtitle">در حال دریافت اطلاعات…</p>
+            </div>
+            <div class="bookings-tools">
+                <label class="filter-wrap" for="booking-status-filter">
+                    <span>وضعیت</span>
+                    <select id="booking-status-filter" class="filter-select">
+                        <option value="">همه</option>
+                        <option value="pending">در انتظار</option>
+                        <option value="confirmed">تأییدشده</option>
+                        <option value="cancelled">لغوشده</option>
+                    </select>
+                </label>
+                <button id="bookings-refresh-button" type="button" class="btn">
+                    <svg id="bookings-refresh-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992V4.356m0 4.992-3.183-3.183a8.25 8.25 0 0 0-13.803 3.7M2.985 19.644v-4.992m0 0h4.992m-4.992 0 3.183 3.182a8.25 8.25 0 0 0 13.803-3.7"/>
+                    </svg>
+                    بروزرسانی
+                </button>
+            </div>
+        </div>
+
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <h3 class="panel-title">فهرست رزروها</h3>
+                    <p class="panel-caption">همه رزروها، شامل در انتظار، تأییدشده و لغوشده</p>
+                </div>
+            </div>
+
+            <div id="bookings-error" class="state hidden">
+                <div class="state-icon">
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3h.008M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                </div>
+                <p class="state-title">دریافت اطلاعات ناموفق بود</p>
+                <p id="bookings-error-text" class="state-text"></p>
+            </div>
+
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">مهمان</th>
+                            <th scope="col">میزبان</th>
+                            <th scope="col">اقامتگاه</th>
+                            <th scope="col">تاریخ ورود</th>
+                            <th scope="col">تاریخ خروج</th>
+                            <th scope="col">وضعیت</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookings-body">
+                        <tr>
+                            <td colspan="6"><div class="skeleton" style="width:100%"></div></td>
+                        </tr>
+                        <tr>
+                            <td colspan="6"><div class="skeleton" style="width:78%"></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel-foot">
+                <p id="bookings-footer">—</p>
             </div>
         </section>
     </div>
@@ -1194,6 +1296,115 @@
 
     listingsRefreshButton.addEventListener('click', loadListings);
 
+    // --- Bookings view ---------------------------------------------------
+    const bookingsBody = document.getElementById('bookings-body');
+    const bookingsCaption = document.getElementById('bookings-caption');
+    const bookingsFooter = document.getElementById('bookings-footer');
+    const bookingsError = document.getElementById('bookings-error');
+    const bookingsErrorText = document.getElementById('bookings-error-text');
+    const bookingsRefreshButton = document.getElementById('bookings-refresh-button');
+    const bookingsRefreshIcon = document.getElementById('bookings-refresh-icon');
+    const bookingStatusFilter = document.getElementById('booking-status-filter');
+
+    const BOOKING_STATUS_META = {
+        pending: { label: 'در انتظار', className: 'badge-pending' },
+        confirmed: { label: 'تأییدشده', className: 'badge-confirmed' },
+        cancelled: { label: 'لغوشده', className: 'badge-cancelled' }
+    };
+
+    function bookingStatusBadge(status) {
+        const meta = BOOKING_STATUS_META[status] || { label: status || '—', className: 'badge-guest' };
+        return '<span class="badge ' + meta.className + '">' + escapeHtml(meta.label) + '</span>';
+    }
+
+    // check_in / check_out are plain calendar dates: anchor them at UTC midnight
+    // and let Asia/Tehran presentation render the same day.
+    function faDay(value) {
+        if (!value) { return '—'; }
+        const date = new Date(String(value).slice(0, 10) + 'T00:00:00Z');
+        return Number.isNaN(date.getTime()) ? '—' : faShortDate.format(date);
+    }
+
+    let bookings = [];
+    let bookingsLoaded = false;
+    let bookingStatus = '';
+
+    function renderBookings() {
+        const rows = bookings.filter(function (booking) {
+            return !bookingStatus || booking.status === bookingStatus;
+        });
+
+        bookingsCaption.textContent = rows.length.toLocaleString('fa-IR') + ' رزرو نمایش داده می‌شود';
+        bookingsFooter.textContent = 'مجموع ' + bookings.length.toLocaleString('fa-IR') + ' رزرو در سامانه ثبت شده است';
+
+        if (rows.length === 0) {
+            bookingsBody.innerHTML = '<tr><td colspan="6" class="state">'
+                + '<p class="empty-title">رزروی یافت نشد</p>'
+                + '<p class="empty-text">فیلتر وضعیت را تغییر دهید.</p>'
+                + '</td></tr>';
+            return;
+        }
+
+        bookingsBody.innerHTML = rows.map(function (booking) {
+            return '<tr>'
+                + '<td>' + escapeHtml(booking.guest_name || 'بدون نام')
+                + '<p class="user-id" dir="ltr">' + escapeHtml(booking.guest_email) + '</p></td>'
+                + '<td>' + escapeHtml(booking.host_name || 'بدون نام')
+                + '<p class="user-id" dir="ltr">' + escapeHtml(booking.host_email) + '</p></td>'
+                + '<td>' + escapeHtml(booking.listing_title)
+                + '<p class="user-id">' + escapeHtml(booking.room_name) + '</p></td>'
+                + '<td class="muted">' + escapeHtml(faDay(booking.check_in)) + '</td>'
+                + '<td class="muted">' + escapeHtml(faDay(booking.check_out)) + '</td>'
+                + '<td>' + bookingStatusBadge(booking.status) + '</td>'
+                + '</tr>';
+        }).join('');
+    }
+
+    async function loadBookings() {
+        bookingsRefreshButton.disabled = true;
+        bookingsRefreshIcon.classList.add('animate-spin');
+        bookingsError.classList.add('hidden');
+
+        try {
+            const response = await fetch('/api/v1/bookings/all', {
+                headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' }
+            });
+
+            if (response.status === 401) {
+                signOut();
+                return;
+            }
+            if (response.status === 403) {
+                bookingsBody.innerHTML = '';
+                bookingsCaption.textContent = 'دسترسی محدود';
+                bookingsErrorText.textContent = 'این فهرست فقط برای مدیران سامانه در دسترس است.';
+                bookingsError.classList.remove('hidden');
+                return;
+            }
+            if (!response.ok) {
+                throw new Error('Unexpected status ' + response.status);
+            }
+
+            bookings = await response.json();
+            bookingsLoaded = true;
+            renderBookings();
+        } catch (error) {
+            bookingsBody.innerHTML = '';
+            bookingsCaption.textContent = 'خطا در دریافت اطلاعات';
+            bookingsErrorText.textContent = 'ارتباط با سرور برقرار نشد؛ اتصال شبکه را بررسی کنید.';
+            bookingsError.classList.remove('hidden');
+        } finally {
+            bookingsRefreshButton.disabled = false;
+            bookingsRefreshIcon.classList.remove('animate-spin');
+        }
+    }
+
+    bookingsRefreshButton.addEventListener('click', loadBookings);
+    bookingStatusFilter.addEventListener('change', function (event) {
+        bookingStatus = event.target.value;
+        renderBookings();
+    });
+
     // --- Views: dashboard <-> listings -----------------------------------
     const VIEWS = {
         dashboard: {
@@ -1205,6 +1416,11 @@
             section: document.getElementById('view-listings'),
             crumb: 'پنل مدیریت / اقامتگاه‌ها',
             title: 'مدیریت اقامتگاه‌ها'
+        },
+        bookings: {
+            section: document.getElementById('view-bookings'),
+            crumb: 'پنل مدیریت / رزروها',
+            title: 'مدیریت رزروها'
         }
     };
     const crumbElement = document.querySelector('.topbar-crumb');
@@ -1231,6 +1447,9 @@
         currentView = name;
         if (name === 'listings' && !listingsLoaded) {
             loadListings();
+        }
+        if (name === 'bookings' && !bookingsLoaded) {
+            loadBookings();
         }
     }
 

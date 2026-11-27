@@ -17,9 +17,14 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
+from typing import TYPE_CHECKING
+
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from app.models.booking import Booking
 
 LISTING_STATUSES = ("draft", "published", "archived")
 
@@ -79,6 +84,11 @@ class Room(Base):
     idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
     listing: Mapped[Listing] = relationship(back_populates="rooms", lazy="selectin")
+    bookings: Mapped[list["Booking"]] = relationship(
+        back_populates="room",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
 
     def __repr__(self) -> str:  # pragma: no cover - debugging helper
         return f"<Room id={self.id} name={self.name!r} capacity={self.capacity}>"

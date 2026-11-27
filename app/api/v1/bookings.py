@@ -12,14 +12,16 @@ import uuid
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import aliased
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_admin, get_current_user
 from app.core.database import get_db
 from app.models.booking import Booking
 from app.models.listing import Listing, Room
 from app.models.user import User
 from app.schemas.booking import (
+    AdminBookingResponse,
     BookingCreate,
     BookingResponse,
     GuestBookingResponse,
@@ -126,6 +128,71 @@ async def create_booking(
 
     await db.refresh(booking)
     return booking
+
+
+@router.get(
+    "/all",
+    response_model=list[AdminBookingResponse],
+    summary="Every booking in the system (admin only)",
+)
+async def list_all_bookings(
+    db: AsyncSession = Depends(get_db),
+    _admin: User = Depends(get_current_admin),
+) -> list[AdminBookingResponse]:
+    """System-wide booking list for the admin panel, newest stays first.
+
+    Both parties are fetched in the same statement: the guest through
+    ``bookings.guest_id`` and the host through ``listings.host_id``.
+    """
+    guest = aliased(User)
+    host = aliased(User)
+
+    rows = await db.execute(
+        select(
+            Booking,
+            guest.full_name,
+            guest.email,
+            host.full_name,
+            host.email,
+            Listing.id,
+            Listing.title,
+            Room.name,
+        )
+        .join(Room, Room.id == Booking.room_id)
+        .join(Listing, Listing.id == Room.listing_id)
+        .join(guest, guest.id == Booking.guest_id)
+        .join(host, host.id == Listing.host_id)
+        .order_by(Booking.check_in.desc(), Booking.created_at.desc())
+    )
+
+    return [
+        AdminBookingResponse(
+            id=booking.id,
+            room_id=booking.room_id,
+            guest_id=booking.guest_id,
+            guest_name=guest_name,
+            guest_email=guest_email,
+            host_name=host_name,
+            host_email=host_email,
+            listing_id=listing_id,
+            listing_title=listing_title,
+            room_name=room_name,
+            check_in=booking.check_in,
+            check_out=booking.check_out,
+            status=booking.status,
+            created_at=booking.created_at,
+        )
+        for (
+            booking,
+            guest_name,
+            guest_email,
+            host_name,
+            host_email,
+            listing_id,
+            listing_title,
+            room_name,
+        ) in rows.all()
+    ]
 
 
 @router.get(

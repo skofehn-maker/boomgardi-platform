@@ -32,6 +32,25 @@ class HostBookingResponse(BookingResponse):
     listing_title: str
 
 
+class AdminBookingResponse(BaseModel):
+    """A booking as the admin panel sees it: guest, host, listing and dates."""
+
+    id: UUID
+    room_id: UUID
+    guest_id: UUID
+    guest_name: str | None = None
+    guest_email: str
+    host_name: str | None = None
+    host_email: str
+    listing_id: UUID
+    listing_title: str
+    room_name: str
+    check_in: date
+    check_out: date
+    status: str
+    created_at: datetime
+
+
 class GuestBookingResponse(BaseModel):
     """A booking as the guest sees it: what was booked and where."""
 

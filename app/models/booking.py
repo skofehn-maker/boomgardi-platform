@@ -7,8 +7,10 @@ applies to them; ``created_at`` is stored in UTC like every other timestamp
 
 import uuid
 from datetime import date, datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
+    CheckConstraint,
     Date,
     DateTime,
     ForeignKey,
@@ -17,9 +19,13 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from app.models.listing import Room
+    from app.models.user import User
 
 BOOKING_STATUSES = ("pending", "confirmed", "cancelled")
 
@@ -32,6 +38,10 @@ class Booking(Base):
         UniqueConstraint(
             "guest_id", "idempotency_key", name="uq_bookings_guest_idempotency"
         ),
+        # A stay must end after it starts. SQLite can enforce this, so it lives
+        # on the model; the PostgreSQL exclusion constraint cannot be rendered
+        # by SQLite and therefore lives in the migration (ADR 0011).
+        CheckConstraint("check_out > check_in", name="ck_bookings_dates"),
         Index("ix_bookings_room_check_in", "room_id", "check_in"),
     )
 
@@ -50,6 +60,9 @@ class Booking(Base):
 
     # Iron Rule 4: a replayed create returns this row instead of booking twice.
     idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
+
+    room: Mapped["Room"] = relationship(back_populates="bookings", lazy="selectin")
+    guest: Mapped["User"] = relationship(lazy="selectin")
 
     def __repr__(self) -> str:  # pragma: no cover - debugging helper
         return (
