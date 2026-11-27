@@ -1,0 +1,142 @@
+/* In-app notification bell (phase 14).
+ *
+ * Shared by index.html and profile.html so the behaviour and the Coffee &
+ * Cream styling live in one place. All text is inserted with textContent, so a
+ * notification message can never inject markup.
+ */
+
+.bell-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* The mount ships with the ``hidden`` attribute until the script confirms a
+ * session; an explicit rule keeps that working despite the display above. */
+.bell-wrap[hidden] { display: none; }
+
+.bell-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 1px solid #d7ccc8;
+    border-radius: 12px;
+    background: #fdfbf7;
+    color: #6f4e37;
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.bell-btn:hover,
+.bell-btn[aria-expanded="true"] {
+    background: #f5f0e6;
+    border-color: #6f4e37;
+    color: #4e342e;
+}
+
+.bell-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+}
+
+.bell-count {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #4e342e;
+    color: #f5f0e6;
+    border: 2px solid #fdfbf7;
+    font-size: 10.5px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.bell-count.show { display: inline-flex; }
+
+.bell-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    z-index: 50;
+    width: 306px;
+    max-width: calc(100vw - 32px);
+    display: none;
+    background: #ffffff;
+    border: 1px solid #d7ccc8;
+    border-radius: 16px;
+    box-shadow: 0 18px 38px rgba(62, 39, 35, 0.18);
+    overflow: hidden;
+}
+
+.bell-panel.open { display: block; }
+
+.bell-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0;
+    padding: 12px 14px;
+    border-bottom: 1px solid #d7ccc8;
+    background: #fdfbf7;
+    font-size: 13px;
+    font-weight: 700;
+    color: #3e2723;
+}
+
+.bell-head small {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6f4e37;
+}
+
+.bell-list {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.bell-item {
+    padding: 11px 14px;
+    border-bottom: 1px solid rgba(215, 204, 200, 0.65);
+}
+
+.bell-item:last-child { border-bottom: 0; }
+.bell-item.unread { background: #fdfbf7; }
+
+.bell-message {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #3e2723;
+}
+
+.bell-time {
+    margin: 4px 0 0;
+    font-size: 10.5px;
+    color: #6f4e37;
+}
+
+.bell-empty {
+    margin: 0;
+    padding: 26px 14px;
+    text-align: center;
+    font-size: 12px;
+    color: #6f4e37;
+}
+
+@media (max-width: 420px) {
+    .bell-panel { width: 262px; }
+}

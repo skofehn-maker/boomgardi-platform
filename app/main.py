@@ -6,6 +6,7 @@ from fastapi.templating import Jinja2Templates
 from app.api.v1.auth import router as auth_router
 from app.api.v1.bookings import router as bookings_router
 from app.api.v1.listings import router as listings_router
+from app.api.v1.notifications import router as notifications_router
 from app.api.v1.users import router as users_router
 
 app = FastAPI(title="Boomgardi Platform")
@@ -18,6 +19,11 @@ app.include_router(auth_router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(users_router, prefix="/api/v1/users", tags=["users"])
 app.include_router(listings_router, prefix="/api/v1/listings", tags=["listings"])
 app.include_router(bookings_router, prefix="/api/v1/bookings", tags=["bookings"])
+app.include_router(
+    notifications_router,
+    prefix="/api/v1/notifications",
+    tags=["notifications"],
+)
 
 
 @app.get("/health")
@@ -48,6 +54,11 @@ async def admin_page(request: Request):
 @app.get("/profile", include_in_schema=False)
 async def profile_page(request: Request):
     return templates.TemplateResponse(request=request, name="profile.html")
+
+
+@app.get("/payment/{booking_id}", include_in_schema=False)
+async def payment_page(request: Request, booking_id: str):
+    return templates.TemplateResponse(request=request, name="payment.html")
 
 
 @app.get("/host", include_in_schema=False)

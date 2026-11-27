@@ -311,6 +311,7 @@
             .hero-title { font-size: 34px; }
         }
     </style>
+    <link rel="stylesheet" href="/static/css/notifications.css">
 </head>
 <body>
 
@@ -332,6 +333,7 @@
             <a class="ghost-link" href="/host">ثبت اقامتگاه</a>
             <a id="nav-login" class="solid-link" href="/login">ورود / ثبت‌نام</a>
             <a id="nav-profile" class="solid-link hidden" href="/profile">پروفایل من</a>
+            <div id="notification-bell" class="bell-wrap" hidden></div>
             <button id="nav-logout" class="nav-btn hidden" type="button">خروج</button>
         </nav>
     </div>
@@ -533,5 +535,6 @@
     loadListings();
 })();
 </script>
+<script src="/static/js/notifications.js"></script>
 </body>
 </html>

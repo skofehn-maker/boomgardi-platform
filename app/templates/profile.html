@@ -359,6 +359,7 @@
             .grid { grid-template-columns: 2fr 1fr; }
         }
     </style>
+    <link rel="stylesheet" href="/static/css/notifications.css">
 </head>
 <body>
 
@@ -381,6 +382,8 @@
             <a href="/profile/bookings" class="nav-link">رزروهای من</a>
             <a id="admin-link" href="/admin" class="nav-link hidden">پنل مدیریت</a>
         </nav>
+
+        <div id="notification-bell" class="bell-wrap" hidden></div>
 
         <button id="logout-button" type="button" class="logout-btn">
             <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true">
@@ -828,19 +831,19 @@
             actions.style.marginTop = '8px';
 
             if (status === 'pending') {
-                const payBtn = document.createElement('button');
-                payBtn.type = 'button';
-                payBtn.textContent = 'پرداخت';
-                payBtn.setAttribute('data-action', 'pay');
-                payBtn.setAttribute('data-id', booking.id);
-                payBtn.style.padding = '6px 12px';
-                payBtn.style.border = '1px solid #4e342e';
-                payBtn.style.borderRadius = '9px';
-                payBtn.style.background = '#6f4e37';
-                payBtn.style.color = '#f5f0e6';
-                payBtn.style.cursor = 'pointer';
-                payBtn.style.fontFamily = 'inherit';
-                actions.appendChild(payBtn);
+                // Payment happens on the mock gateway page (phase 14), never
+                // straight from the dashboard.
+                const payLink = document.createElement('a');
+                payLink.href = '/payment/' + encodeURIComponent(booking.id);
+                payLink.textContent = 'پرداخت';
+                payLink.style.padding = '6px 12px';
+                payLink.style.border = '1px solid #4e342e';
+                payLink.style.borderRadius = '9px';
+                payLink.style.background = '#6f4e37';
+                payLink.style.color = '#f5f0e6';
+                payLink.style.fontSize = '13px';
+                payLink.style.fontWeight = '600';
+                actions.appendChild(payLink);
             }
 
             const cancelBtn = document.createElement('button');
@@ -873,13 +876,11 @@
     }
 
     async function runBookingAction(btn) {
-        const action = btn.getAttribute('data-action');
         const id = btn.getAttribute('data-id');
         btn.disabled = true;
 
-        const endpoint = action === 'pay'
-            ? '/api/v1/bookings/' + encodeURIComponent(id) + '/pay'
-            : '/api/v1/bookings/' + encodeURIComponent(id) + '/cancel';
+        // Only cancellation is handled here; payment moved to /payment/{id}.
+        const endpoint = '/api/v1/bookings/' + encodeURIComponent(id) + '/cancel';
 
         try {
             const response = await fetch(endpoint, {
@@ -954,5 +955,6 @@
     loadBookings();
 })();
 </script>
+<script src="/static/js/notifications.js"></script>
 </body>
 </html>

@@ -19,6 +19,7 @@ from app.api.deps import get_current_admin, get_current_user
 from app.core.database import get_db
 from app.models.booking import Booking
 from app.models.listing import Listing, Room
+from app.models.notification import Notification
 from app.models.user import User
 from app.schemas.booking import (
     AdminBookingResponse,
@@ -282,6 +283,19 @@ async def list_my_bookings(
     ]
 
 
+async def _listing_for(db: AsyncSession, booking: Booking) -> Listing | None:
+    """The listing a booking belongs to (booking -> room -> listing)."""
+    room = await db.get(Room, booking.room_id)
+    if room is None:
+        return None
+    return await db.get(Listing, room.listing_id)
+
+
+def _notify(db: AsyncSession, user_id: uuid.UUID, message: str) -> None:
+    """Queue an in-app notification on the caller's transaction (ADR 0012)."""
+    db.add(Notification(user_id=user_id, message=message))
+
+
 async def _load_host_booking(
     db: AsyncSession, booking_id: uuid.UUID, current_user: User
 ) -> Booking:
@@ -360,6 +374,9 @@ async def confirm_booking(
 
     if booking.status != "confirmed":
         booking.status = "confirmed"
+        listing = await _listing_for(db, booking)
+        title = listing.title if listing is not None else "اقامتگاه"
+        _notify(db, booking.guest_id, f"رزرو «{title}» تأیید شد.")
         await db.commit()
         await db.refresh(booking)
 
@@ -387,6 +404,16 @@ async def cancel_booking(
 
     if booking.status != "cancelled":
         booking.status = "cancelled"
+        listing = await _listing_for(db, booking)
+        title = listing.title if listing is not None else "اقامتگاه"
+
+        # The actor already knows; tell the other party.
+        if current_user.id == booking.guest_id:
+            recipient = listing.host_id if listing is not None else booking.guest_id
+        else:
+            recipient = booking.guest_id
+        _notify(db, recipient, f"رزرو «{title}» لغو شد.")
+
         await db.commit()
         await db.refresh(booking)
 
@@ -420,6 +447,13 @@ async def pay_booking(
 
     if booking.status != "confirmed":
         booking.status = "confirmed"
+        listing = await _listing_for(db, booking)
+        title = listing.title if listing is not None else "اقامتگاه"
+        _notify(
+            db,
+            booking.guest_id,
+            f"پرداخت رزرو «{title}» انجام شد و رزرو تأیید شد.",
+        )
         await db.commit()
         await db.refresh(booking)
 

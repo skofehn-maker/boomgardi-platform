@@ -19,7 +19,7 @@ from app.core.config import settings
 from app.core.database import Base
 
 # Importing the models registers every table on Base.metadata.
-from app.models import booking, listing, user  # noqa: F401
+from app.models import booking, listing, notification, user  # noqa: F401
 
 config = context.config
 
