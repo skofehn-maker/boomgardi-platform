@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -7,6 +8,9 @@ from pydantic import BaseModel, ConfigDict, Field
 class UserCreate(BaseModel):
     email: str = Field(min_length=3, max_length=255)
     password: str = Field(min_length=8, max_length=128)
+    # Self-service sign-up picks one of the two public roles; admin stays seeded.
+    full_name: str | None = Field(default=None, max_length=255)
+    role: Literal["guest", "host"] = "guest"
 
 
 class UserLogin(BaseModel):

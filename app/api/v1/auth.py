@@ -26,7 +26,13 @@ async def register_user(user: UserCreate, db: AsyncSession = Depends(get_db)) ->
             detail="این ایمیل قبلاً ثبت شده است",
         )
 
-    new_user = User(email=email, password_hash=hash_password(user.password))
+    full_name = (user.full_name or "").strip() or None
+    new_user = User(
+        email=email,
+        password_hash=hash_password(user.password),
+        full_name=full_name,
+        role=user.role,
+    )
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)

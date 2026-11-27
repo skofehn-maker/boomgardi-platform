@@ -35,6 +35,11 @@ async def login_page(request: Request):
     return templates.TemplateResponse(request=request, name="login.html")
 
 
+@app.get("/register", include_in_schema=False)
+async def register_page(request: Request):
+    return templates.TemplateResponse(request=request, name="register.html")
+
+
 @app.get("/admin", include_in_schema=False)
 async def admin_page(request: Request):
     return templates.TemplateResponse(request=request, name="admin.html")
