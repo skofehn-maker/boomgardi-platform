@@ -338,7 +338,7 @@
         </a>
 
         <nav class="nav" aria-label="ناوبری">
-            <a href="/profile" class="nav-link current">داشبورد</a>
+            <a href="/profile" class="nav-link current">پروفایل من</a>
             <a href="/profile/bookings" class="nav-link">رزروهای من</a>
             <a id="admin-link" href="/admin" class="nav-link hidden">پنل مدیریت</a>
         </nav>
@@ -650,28 +650,33 @@
         main.appendChild(sub);
         main.appendChild(dates);
 
-        if (status === 'pending') {
+        // A pending booking can still be paid or cancelled; a confirmed one
+        // can only be cancelled (the room is held either way).
+        if (status === 'pending' || status === 'confirmed') {
             const actions = document.createElement('div');
             actions.style.display = 'flex';
             actions.style.gap = '8px';
             actions.style.marginTop = '8px';
 
-            const payBtn = document.createElement('button');
-            payBtn.type = 'button';
-            payBtn.textContent = 'پرداخت';
-            payBtn.setAttribute('data-action', 'pay');
-            payBtn.setAttribute('data-id', booking.id);
-            payBtn.style.padding = '6px 12px';
-            payBtn.style.border = '1px solid #4e342e';
-            payBtn.style.borderRadius = '9px';
-            payBtn.style.background = '#6f4e37';
-            payBtn.style.color = '#f5f0e6';
-            payBtn.style.cursor = 'pointer';
-            payBtn.style.fontFamily = 'inherit';
+            if (status === 'pending') {
+                const payBtn = document.createElement('button');
+                payBtn.type = 'button';
+                payBtn.textContent = 'پرداخت';
+                payBtn.setAttribute('data-action', 'pay');
+                payBtn.setAttribute('data-id', booking.id);
+                payBtn.style.padding = '6px 12px';
+                payBtn.style.border = '1px solid #4e342e';
+                payBtn.style.borderRadius = '9px';
+                payBtn.style.background = '#6f4e37';
+                payBtn.style.color = '#f5f0e6';
+                payBtn.style.cursor = 'pointer';
+                payBtn.style.fontFamily = 'inherit';
+                actions.appendChild(payBtn);
+            }
 
             const cancelBtn = document.createElement('button');
             cancelBtn.type = 'button';
-            cancelBtn.textContent = 'لغو';
+            cancelBtn.textContent = 'لغو رزرو';
             cancelBtn.setAttribute('data-action', 'cancel');
             cancelBtn.setAttribute('data-id', booking.id);
             cancelBtn.style.padding = '6px 12px';
@@ -682,7 +687,6 @@
             cancelBtn.style.cursor = 'pointer';
             cancelBtn.style.fontFamily = 'inherit';
 
-            actions.appendChild(payBtn);
             actions.appendChild(cancelBtn);
             main.appendChild(actions);
         }
